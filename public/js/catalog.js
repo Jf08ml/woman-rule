@@ -52,12 +52,14 @@ export const DISCHARGE = [
   { id: 'unusual', label: 'Inusual', icon: 'triangle-alert' },
 ];
 
+// Intimidad: `log.sex` = 'yes' (sin detalle) | 'protected' | 'unprotected'; `log.solo` = momento a solas.
+// Registros antiguos pueden traer sex = 'none' | 'solo'.
 export const SEX = [
-  { id: 'none', label: 'Sin relaciones', icon: 'minus' },
-  { id: 'protected', label: 'Protegidas', icon: 'shield' },
-  { id: 'unprotected', label: 'Sin protección', icon: 'heart' },
-  { id: 'solo', label: 'Masturbación', icon: 'sparkles' },
+  { id: 'protected', label: 'Con protección', icon: 'shield' },
+  { id: 'unprotected', label: 'Sin protección', icon: 'heart-pulse' },
 ];
+export const madeLove = (log) => ['yes', 'protected', 'unprotected'].includes(log.sex);
+export const soloTime = (log) => !!log.solo || log.sex === 'solo';
 
 export const OV_TEST = [
   { id: 'negative', label: 'Negativo', icon: 'minus' },

@@ -1,5 +1,5 @@
 // Service worker de Lunara: offline, notificaciones push y recordatorios locales de respaldo.
-const VERSION = 'v1.2.0';
+const VERSION = 'v1.3.0';
 const CACHE = `lunara-${VERSION}`;
 const DATA_CACHE = 'lunara-data';
 const SCHEDULE_URL = '/__schedule';

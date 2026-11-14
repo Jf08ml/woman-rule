@@ -246,6 +246,11 @@ textarea { resize: vertical; }
 .cal.editing .num { position: absolute; top: 0; font-size: .72rem; }
 .check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--predicted); margin-top: 10px; display: grid; place-items: center; font-size: .75rem; color: #fff; }
 .check.on { background: var(--period); border-color: var(--period); }
+.i.fill { fill: currentColor; }
+.cal-cell .love { position: absolute; top: -3px; right: -3px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--surface); color: var(--period); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+.cal-cell .love .i { width: 11px; height: 11px; vertical-align: 0; }
+.lg-love .i, .love-ic .i { color: var(--period); }
+.card-head.sub { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 12px; font-size: .78rem; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .lg { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }

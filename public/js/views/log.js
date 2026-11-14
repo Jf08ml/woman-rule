@@ -1,6 +1,6 @@
 import { getState, getLog, setLog, setPeriodDay } from '../store.js';
 import { todayKey, addDays, fmtLong, isValidKey } from '../dates.js';
-import { FLOW, SYMPTOMS, MOODS, DISCHARGE, SEX, OV_TEST, PREG_TEST } from '../catalog.js';
+import { FLOW, SYMPTOMS, MOODS, DISCHARGE, SEX, madeLove, soloTime, OV_TEST, PREG_TEST } from '../catalog.js';
 import { esc, chips, toast } from '../ui.js';
 import { icon } from '../icons.js';
 
@@ -33,7 +33,15 @@ export function render(params = []) {
     <section class="card"><h2>Síntomas</h2>${chips(SYMPTOMS, log.symptoms, 'symptoms')}</section>
     <section class="card"><h2>Estado de ánimo</h2>${chips(MOODS, log.moods, 'moods')}</section>
     <section class="card"><h2>Flujo vaginal</h2>${chips(DISCHARGE, log.discharge, 'discharge', false)}</section>
-    <section class="card"><h2>Actividad sexual</h2>${chips(SEX, log.sex, 'sex', false)}</section>
+    <section class="card">
+      <div class="card-head"><h2 class="h-ic love-ic">${icon('heart', 'fill')} Hicimos el amor</h2>
+        <label class="switch"><input type="checkbox" data-act="love" ${madeLove(log) ? 'checked' : ''}><span></span></label>
+      </div>
+      ${madeLove(log) ? `<p class="muted small">¿Con protección? (opcional)</p>${chips(SEX, log.sex, 'sex', false)}` : '<p class="muted small">Se marcará con un corazón en tu calendario.</p>'}
+      <div class="card-head sub"><span class="h-ic">${icon('sparkles')} Momento a solas</span>
+        <label class="switch"><input type="checkbox" data-act="solo" ${soloTime(log) ? 'checked' : ''}><span></span></label>
+      </div>
+    </section>
 
     ${showPill || s.profile.goal === 'track' ? `
     <section class="card">
@@ -79,6 +87,18 @@ export function render(params = []) {
         if (!e.target.checked) setLog(d, { flow: null });
         toast(e.target.checked ? 'Día de periodo registrado' : 'Día de periodo eliminado');
       });
+      root.querySelector('[data-act=love]').addEventListener('change', (e) => {
+        const on = e.target.checked;
+        const patch = { sex: on ? 'yes' : null };
+        if (getLog(d).sex === 'solo') patch.solo = true; // migra registros antiguos
+        setLog(d, patch);
+        if (on) toast('Guardado con amor ♥');
+      });
+      root.querySelector('[data-act=solo]').addEventListener('change', (e) => {
+        const patch = { solo: e.target.checked };
+        if (getLog(d).sex === 'solo') patch.sex = null;
+        setLog(d, patch);
+      });
       root.querySelector('[data-act=pill]')?.addEventListener('change', (e) => setLog(d, { pill: e.target.checked }));
       root.querySelectorAll('.chips').forEach((group) => {
         const name = group.dataset.name;
@@ -95,7 +115,8 @@ export function render(params = []) {
             else { set.delete('fine'); set.add(id); }
             setLog(d, { [name]: [...set] });
           } else {
-            setLog(d, { [name]: cur === id ? null : id });
+            const off = name === 'sex' ? 'yes' : null; // quitar la protección no borra el registro
+            setLog(d, { [name]: cur === id ? off : id });
           }
         });
       });

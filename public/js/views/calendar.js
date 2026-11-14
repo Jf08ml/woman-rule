@@ -1,7 +1,7 @@
 import { getState, getLog, setPeriodDay, setPeriodDays } from '../store.js';
 import { computeStats, predict, buildDayMap } from '../cycle.js';
 import { todayKey, toKey, addDays, diffDays, fmtLong, monthName, WEEKDAYS, plural } from '../dates.js';
-import { FLOW, SYMPTOMS, MOODS, label } from '../catalog.js';
+import { FLOW, SYMPTOMS, MOODS, SEX, madeLove, label } from '../catalog.js';
 import { esc, toast } from '../ui.js';
 import { icon } from '../icons.js';
 
@@ -22,6 +22,7 @@ function dayCard(s, d, map, pred) {
   if (log.flow) tags.push(['droplet', label(FLOW, log.flow)]);
   (log.symptoms || []).forEach((id) => tags.push([SYMPTOMS.find((x) => x.id === id)?.icon || 'circle', label(SYMPTOMS, id)]));
   (log.moods || []).forEach((id) => tags.push([MOODS.find((x) => x.id === id)?.icon || 'circle', label(MOODS, id)]));
+  if (madeLove(log)) tags.push(['heart', log.sex === 'yes' ? 'Hicimos el amor' : `Hicimos el amor · ${label(SEX, log.sex).toLowerCase()}`]);
   if (log.temp) tags.push(['thermometer', `${log.temp} °C`]);
   if (log.notes) tags.push(['notebook-pen', log.notes.slice(0, 40)]);
   const future = d > todayKey();
@@ -52,11 +53,14 @@ export function render(params = []) {
   for (let n = 1; n <= days; n++) {
     const d = toKey(new Date(cursor.y, cursor.m, n, 12));
     const type = map.get(d) || '';
-    const logged = Object.keys(getLog(d)).length > 0;
+    const dl = getLog(d);
+    const logged = Object.keys(dl).length > 0;
+    const love = madeLove(dl);
     const isPeriod = s.periodDays.includes(d);
     const cls = ['cal-cell', type && `day-${type}`, d === t && 'is-today', d === selected && !edit && 'is-selected', d > t && 'future'].filter(Boolean).join(' ');
     cells += `<button type="button" class="${cls}" data-day="${d}" ${edit && d > t ? 'disabled' : ''}>
       <span class="num">${n}</span>
+      ${love && !edit ? `<span class="love" title="Hicimos el amor">${icon('heart', 'fill')}</span>` : ''}
       ${edit ? `<span class="check ${isPeriod ? 'on' : ''}">${isPeriod ? icon('check') : ''}</span>` : `<span class="dot ${logged ? 'on' : ''}"></span>`}
     </button>`;
   }
@@ -86,6 +90,7 @@ export function render(params = []) {
         <span><i class="lg lg-predicted"></i>Previsto</span>
         <span><i class="lg lg-fertile"></i>Fértil</span>
         <span><i class="lg lg-ovulation"></i>Ovulación</span>
+        <span class="lg-love">${icon('heart', 'fill')}Hicimos el amor</span>
       </div>
     </section>
     <div class="center-actions">

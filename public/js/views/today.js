@@ -1,7 +1,7 @@
 import { getState, getLog, setPeriodDay } from '../store.js';
 import { computeStats, predict, buildDayMap, pregnancyInfo } from '../cycle.js';
 import { todayKey, addDays, fmt, fmtLong, fromKey, plural } from '../dates.js';
-import { PHASES, SYMPTOMS, MOODS, FLOW, babyFor, label, option } from '../catalog.js';
+import { PHASES, SYMPTOMS, MOODS, FLOW, babyFor, label, option, madeLove } from '../catalog.js';
 import { icon, badge } from '../icons.js';
 import { esc, toast, modal } from '../ui.js';
 import { isIOS, isStandalone } from '../push.js';
@@ -63,6 +63,7 @@ function todayLogCard() {
   if (log.temp) items.push(['thermometer', `${log.temp} °C`]);
   if (log.water) items.push(['glass-water', `${log.water} vasos`]);
   if (log.pill) items.push(['pill', 'Píldora tomada']);
+  if (madeLove(log)) items.push(['heart', 'Hicimos el amor']);
   return `
   <section class="card">
     <div class="card-head"><h2>Mi día</h2><a class="link" href="#/log/${t}">${items.length ? 'Editar' : ''}</a></div>
