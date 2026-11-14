@@ -1,0 +1,22 @@
+{
+  "name": "lunara",
+  "version": "1.0.0",
+  "description": "Lunara: PWA para el seguimiento del ciclo menstrual con notificaciones push",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "icons": "node scripts/gen-icons.js",
+    "vapid": "node scripts/gen-vapid.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.41.0",
+    "@vercel/functions": "^3.11.3",
+    "express": "^4.21.2",
+    "web-push": "^3.6.7"
+  }
+}
