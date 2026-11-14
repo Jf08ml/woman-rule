@@ -2,6 +2,7 @@ import { update } from '../store.js';
 import { todayKey, addDays, isValidKey, diffDays } from '../dates.js';
 import { enableNotifications } from '../push.js';
 import { esc, toast } from '../ui.js';
+import { icon } from '../icons.js';
 
 let step = 0;
 const draft = { name: '', goal: 'track', lastStart: '', unknown: false, periodLength: 5, cycleLength: 28 };
@@ -38,17 +39,17 @@ export function render() {
   const pregnant = draft.goal === 'pregnant';
   const steps = [
     () => `
-      <div class="ob-hero">🌙</div>
+      <img class="hero-logo" src="/icons/logo.svg" alt="" width="96" height="96">
       <h1>Bienvenida a Lunara</h1>
       <p class="muted">Conoce tu ciclo, anticipa tu periodo y tu ventana fértil, registra cómo te sientes y recibe recordatorios. Tus datos se quedan en tu dispositivo.</p>
       <label class="field">¿Cómo te llamamos? (opcional)<input type="text" maxlength="30" data-f="name" value="${esc(draft.name)}" placeholder="Tu nombre"></label>`,
     () => `
       <h1>¿Cuál es tu objetivo?</h1>
       <div class="options">
-        ${[['track', '🩸', 'Seguir mi ciclo', 'Predicciones del periodo y síntomas'],
-          ['conceive', '🌸', 'Quedar embarazada', 'Ventana fértil y ovulación'],
-          ['pregnant', '🤰', 'Estoy embarazada', 'Seguimiento semana a semana']]
-          .map(([v, ic, l, d]) => `<button type="button" class="option ${draft.goal === v ? 'on' : ''}" data-goal="${v}"><span>${ic}</span><div><b>${l}</b><small>${d}</small></div></button>`).join('')}
+        ${[['track', 'droplet', 'Seguir mi ciclo', 'Predicciones del periodo y síntomas'],
+          ['conceive', 'flower-2', 'Quedar embarazada', 'Ventana fértil y ovulación'],
+          ['pregnant', 'baby', 'Estoy embarazada', 'Seguimiento semana a semana']]
+          .map(([v, ic, l, d]) => `<button type="button" class="option ${draft.goal === v ? 'on' : ''}" data-goal="${v}"><span class="ib ib-primary">${icon(ic)}</span><div><b>${l}</b><small>${d}</small></div></button>`).join('')}
       </div>`,
     () => `
       <h1>${pregnant ? '¿Cuándo empezó tu última regla?' : '¿Cuándo empezó tu último periodo?'}</h1>
@@ -64,7 +65,7 @@ export function render() {
       <p class="muted">Desde el primer día de un periodo hasta el primer día del siguiente. La media es de 28 días.</p>
       ${stepper('cycleLength', 18, 60, 'días')}`,
     () => `
-      <div class="ob-hero">🔔</div>
+      <div class="hero-ic">${icon('bell-ring')}</div>
       <h1>Recordatorios</h1>
       <p class="muted">Activa las notificaciones para saber cuándo llega tu periodo, tu ventana fértil, tomar la píldora y más. Podrás personalizarlas en Perfil.</p>`,
   ];
@@ -115,7 +116,7 @@ export function render() {
         try {
           await enableNotifications();
           finish(true);
-          toast('¡Listo! Notificaciones activadas 🔔');
+          toast('¡Listo! Notificaciones activadas');
         } catch (err) {
           toast(err.message, 5000);
           finish(false);

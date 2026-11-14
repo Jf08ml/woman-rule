@@ -26,7 +26,7 @@ export function buildSchedule(state, now = new Date()) {
   const discreet = state.settings.discreet;
   const name = state.profile.name ? `, ${state.profile.name}` : '';
   const goal = state.profile.goal;
-  const msg = (title, body) => (discreet ? { title: 'Lunara', body: 'Tienes un recordatorio nuevo 🌙' } : { title, body });
+  const msg = (title, body) => (discreet ? { title: 'Lunara', body: 'Tienes un recordatorio nuevo' } : { title, body });
   const time = r.time || '09:00';
   const nowMs = now.getTime();
   const add = (id, dateKey, tag, m, url = '/#/today', at = time) => {
@@ -38,9 +38,9 @@ export function buildSchedule(state, now = new Date()) {
     const p = pregnancyInfo(state);
     if (p && r.pregnancyWeekly.on) {
       for (let w = Math.max(1, p.week + 1); w <= 42; w++) {
-        const [size, icon] = babyFor(w);
+        const size = babyFor(w);
         add(`preg:${w}`, addDays(p.lmp, w * 7), 'pregnancy',
-          msg(`¡Semana ${w} de embarazo! ${icon}`, w >= 4 ? `Tu bebé tiene el tamaño de ${size}. Mira las novedades de esta semana.` : 'Mira las novedades de esta semana.'));
+          msg(`¡Semana ${w} de embarazo!`, w >= 4 ? `Tu bebé tiene el tamaño de ${size}. Mira las novedades de esta semana.` : 'Mira las novedades de esta semana.'));
       }
     }
   } else {
@@ -53,7 +53,7 @@ export function buildSchedule(state, now = new Date()) {
         if (r.periodBefore.on && r.periodBefore.days > 0) {
           const d = r.periodBefore.days;
           add(`pb:${start}`, addDays(start, -d), 'period-before',
-            msg(`Tu periodo llega en ${d === 1 ? '1 día' : `${d} días`} 🩸`, `Fecha estimada: ${fmt(start, { weekday: 'long', day: 'numeric', month: 'long' })}. Ten a mano lo que necesites${name}.`));
+            msg(`Tu periodo llega en ${d === 1 ? '1 día' : `${d} días`}`, `Fecha estimada: ${fmt(start, { weekday: 'long', day: 'numeric', month: 'long' })}. Ten a mano lo que necesites${name}.`));
         }
         if (r.periodStart.on) {
           add(`ps:${start}`, start, 'period-start',
@@ -62,12 +62,12 @@ export function buildSchedule(state, now = new Date()) {
         if (r.fertile.on && c.fertileStart > today && !(i === 0 && pred.inPeriod && c.fertileStart <= pred.last.end)) {
           add(`fe:${c.fertileStart}`, c.fertileStart, 'fertile',
             goal === 'conceive'
-              ? msg('Empieza tu ventana fértil 🌸', 'Los próximos días tienes más probabilidades de concebir.')
-              : msg('Empieza tu ventana fértil 🌸', 'Probabilidad de embarazo más alta durante los próximos días.'));
+              ? msg('Empieza tu ventana fértil', 'Los próximos días tienes más probabilidades de concebir.')
+              : msg('Empieza tu ventana fértil', 'Probabilidad de embarazo más alta durante los próximos días.'));
         }
         if (r.ovulation.on) {
           add(`ov:${c.ovulation}`, c.ovulation, 'ovulation',
-            msg('Hoy es tu día estimado de ovulación ✨', goal === 'conceive' ? 'Es el día de mayor fertilidad de tu ciclo.' : 'Día de mayor fertilidad estimada.'));
+            msg('Hoy es tu día estimado de ovulación', goal === 'conceive' ? 'Es el día de mayor fertilidad de tu ciclo.' : 'Día de mayor fertilidad estimada.'));
         }
       });
       // Retraso: 2 días después de la fecha estimada (y otro a los 7 días)
@@ -78,11 +78,11 @@ export function buildSchedule(state, now = new Date()) {
     }
   }
 
-  if (r.pill.on) daily.push({ id: 'pill', time: r.pill.time, tag: 'pill', url: '/#/log', ...msg('Hora de tu píldora 💊', 'No olvides tomar tu anticonceptivo de hoy.') });
+  if (r.pill.on) daily.push({ id: 'pill', time: r.pill.time, tag: 'pill', url: '/#/log', ...msg('Hora de tu píldora', 'No olvides tomar tu anticonceptivo de hoy.') });
   if (r.logDaily.on) daily.push({ id: 'log', time: r.logDaily.time, tag: 'log', url: '/#/log', ...msg('¿Cómo te sientes hoy?', 'Registra tus síntomas y estado de ánimo en 10 segundos.') });
-  if (r.bbt.on) daily.push({ id: 'bbt', time: r.bbt.time, tag: 'bbt', url: '/#/log', ...msg('Temperatura basal 🌡️', 'Mídela antes de levantarte y regístrala.') });
+  if (r.bbt.on) daily.push({ id: 'bbt', time: r.bbt.time, tag: 'bbt', url: '/#/log', ...msg('Temperatura basal', 'Mídela antes de levantarte y regístrala.') });
   if (r.water.on) {
-    r.water.times.forEach((t, i) => daily.push({ id: `water${i}`, time: t, tag: 'water', url: '/#/log', ...msg('Hora de hidratarte 💧', 'Bebe un vaso de agua.') }));
+    r.water.times.forEach((t, i) => daily.push({ id: `water${i}`, time: t, tag: 'water', url: '/#/log', ...msg('Hora de hidratarte', 'Bebe un vaso de agua.') }));
   }
 
   oneOff.sort((a, b) => a.at - b.at);

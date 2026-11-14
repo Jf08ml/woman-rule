@@ -54,6 +54,24 @@ a { color: var(--primary); text-decoration: none; }
 .row.wrap { flex-wrap: wrap; }
 .row-end { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
 
+/* Iconos SVG */
+.i { width: 1.15em; height: 1.15em; flex: none; display: inline-block; vertical-align: -0.2em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ib { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; flex: none; }
+.ib .i { width: 18px; height: 18px; }
+.ib-primary { background: var(--primary-soft); color: var(--primary); }
+.ib-fertile { background: var(--fertile); color: var(--fertile-ink); }
+.ib-preg { background: color-mix(in srgb, var(--preg) 18%, transparent); color: var(--preg); }
+.ib-muted { background: var(--surface-2); color: var(--muted); }
+.ib-warn { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.h-ic { display: inline-flex; align-items: center; gap: 8px; }
+.h-ic .i { color: var(--primary); }
+.hero-ic { display: grid; place-items: center; width: 88px; height: 88px; margin: 10px auto; border-radius: 28px; background: var(--primary-soft); color: var(--primary); }
+.hero-ic .i { width: 44px; height: 44px; stroke-width: 1.75; }
+.hero-logo { display: block; width: 96px; height: 96px; margin: 10px auto; border-radius: 26%; box-shadow: var(--shadow); }
+.chip-ic { display: inline-flex; }
+.chip-ic .i + .i { margin-left: -5px; }
+.btn .i { width: 18px; height: 18px; }
+
 /* Barra superior */
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 16px; }
 .topbar.sticky { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0; margin-top: 0; }
@@ -136,14 +154,21 @@ a { color: var(--primary); text-decoration: none; }
 .tips { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
 .tips li { margin-bottom: 4px; }
 .list { list-style: none; margin: 0; padding: 0; }
-.list li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.list li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .list li:last-child { border-bottom: 0; }
 .list b { text-align: right; font-size: .9rem; }
 .li-ic { font-size: 1.1rem; }
 .progress { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 8px; }
 .progress span { display: block; height: 100%; background: var(--preg); border-radius: 99px; }
 .baby { display: flex; align-items: center; gap: 14px; }
-.baby-ic { font-size: 3rem; }
+.baby .hero-ic { margin: 0; width: 64px; height: 64px; border-radius: 20px; background: color-mix(in srgb, var(--preg) 18%, transparent); color: var(--preg); }
+.baby .hero-ic .i { width: 32px; height: 32px; }
+.warn-ic .i { color: var(--warn); }
+.option .ib { width: 44px; height: 44px; }
+.option .ib .i { width: 22px; height: 22px; }
+.status .i { vertical-align: -0.25em; }
+.keypad .i { width: 26px; height: 26px; }
+.seg-ctl .i, .chip .i { width: 1.1em; height: 1.1em; }
 .disclaimer { color: var(--muted); font-size: .75rem; text-align: center; margin: 18px 8px; }
 
 /* Chips */
@@ -281,7 +306,7 @@ textarea { resize: vertical; }
 .dots i.on { background: var(--primary); }
 .options { display: flex; flex-direction: column; gap: 10px; }
 .option { display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
-.option > span { font-size: 1.8rem; }
+
 .option small { display: block; color: var(--muted); }
 .option.on { border-color: var(--primary); background: var(--primary-soft); }
 .date-big { font-size: 1.2rem !important; text-align: center; }
@@ -305,13 +330,12 @@ textarea { resize: vertical; }
 .install-app-icon.big img { width: 96px; height: 96px; }
 .benefits { list-style: none; padding: 0; margin: 4px 0; display: flex; flex-direction: column; gap: 12px; }
 .benefits li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); }
-.benefits li > span { font-size: 1.4rem; }
+
 .benefits small { display: block; color: var(--muted); }
 .install-steps { margin: 4px 0 8px; padding: 0; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 10px; }
 .install-steps li { counter-increment: st; display: flex; gap: 12px; align-items: center; background: var(--surface); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); line-height: 1.5; }
 .install-steps li::before { content: counter(st); flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: .9rem; }
-.ic { width: 22px; height: 22px; vertical-align: -5px; fill: none; stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.ic circle { fill: var(--primary); stroke: none; }
+.step-ic { color: var(--primary); width: 20px; height: 20px; vertical-align: -4px; margin: 0 2px; }
 .modal .install-steps li { box-shadow: none; background: var(--surface-2); }
 
 /* Modal y toast */

@@ -1,4 +1,6 @@
-export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+import { icon } from './icons.js';
+
+export const esc =(s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let toastTimer;
 export function toast(msg, ms = 2600) {
@@ -49,5 +51,5 @@ export async function sha256(text) {
 export function chips(list, selected, name, multi = true) {
   const sel = new Set(Array.isArray(selected) ? selected : selected ? [selected] : []);
   return `<div class="chips" data-name="${name}" data-multi="${multi}">${list.map((o) =>
-    `<button type="button" class="chip ${sel.has(o.id) ? 'on' : ''}" data-id="${o.id}" aria-pressed="${sel.has(o.id)}"><span class="chip-ic">${o.icon}</span>${esc(o.label)}</button>`).join('')}</div>`;
+    `<button type="button" class="chip ${sel.has(o.id) ? 'on' : ''}" data-id="${o.id}" aria-pressed="${sel.has(o.id)}"><span class="chip-ic">${icon(o.icon).repeat(o.n || 1)}</span>${esc(o.label)}</button>`).join('')}</div>`;
 }

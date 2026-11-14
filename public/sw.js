@@ -1,15 +1,15 @@
 // Service worker de Lunara: offline, notificaciones push y recordatorios locales de respaldo.
-const VERSION = 'v1.1.0';
+const VERSION = 'v1.2.0';
 const CACHE = `lunara-${VERSION}`;
 const DATA_CACHE = 'lunara-data';
 const SCHEDULE_URL = '/__schedule';
 const ASSETS = [
   '/', '/index.html', '/manifest.webmanifest', '/css/styles.css',
   '/js/app.js', '/js/store.js', '/js/dates.js', '/js/cycle.js', '/js/catalog.js', '/js/reminders.js',
-  '/js/push.js', '/js/ui.js',
+  '/js/push.js', '/js/ui.js', '/js/icons.js',
   '/js/views/today.js', '/js/views/calendar.js', '/js/views/log.js', '/js/views/insights.js',
   '/js/views/settings.js', '/js/views/onboarding.js', '/js/views/lock.js', '/js/views/install.js',
-  '/icons/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/badge-96.png',
+  '/icons/favicon.svg', '/icons/logo.svg', '/icons/sprite.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/badge-96.png',
   '/icons/apple-touch-icon.png', '/icons/maskable-512.png',
 ];
 

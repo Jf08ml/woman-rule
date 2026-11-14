@@ -1,6 +1,7 @@
 // Pantalla previa al onboarding: instalar la app o continuar en el navegador.
 import { isIOS } from '../push.js';
 import { toast } from '../ui.js';
+import { icon } from '../icons.js';
 
 const CHOICE_KEY = 'lunara:installChoice';
 let mode = 'offer'; // offer | help | installed
@@ -18,12 +19,12 @@ function continueInBrowser() {
 
 // Iconos simples para las instrucciones
 const IC = {
-  share: '<svg class="ic" viewBox="0 0 24 24" aria-label="Compartir"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-8"/></svg>',
-  dots: '<svg class="ic" viewBox="0 0 24 24" aria-label="Menú"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>',
-  hdots: '<svg class="ic" viewBox="0 0 24 24" aria-label="Menú"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>',
-  burger: '<svg class="ic" viewBox="0 0 24 24" aria-label="Menú"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
-  plus: '<svg class="ic" viewBox="0 0 24 24" aria-label="Añadir"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>',
-  install: '<svg class="ic" viewBox="0 0 24 24" aria-label="Instalar"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 7v6M9 10l3 3 3-3M8 21h8"/></svg>',
+  share: icon('share', 'step-ic'),
+  dots: icon('ellipsis-vertical', 'step-ic'),
+  hdots: icon('ellipsis', 'step-ic'),
+  burger: icon('menu', 'step-ic'),
+  plus: icon('square-plus', 'step-ic'),
+  install: icon('monitor-down', 'step-ic'),
 };
 
 export function detectPlatform() {
@@ -138,7 +139,7 @@ export function render() {
   let body;
   if (mode === 'installed') {
     body = `
-      <div class="ob-hero">🎉</div>
+      <div class="hero-ic">${icon('circle-check')}</div>
       <h1>¡Lunara está instalada!</h1>
       <p class="muted">Ábrela desde tu ${p.desktop ? 'escritorio o menú de aplicaciones' : 'pantalla de inicio'} para empezar. Así recibirás tus recordatorios como cualquier otra app.</p>
       <div class="install-app-icon"><img src="/icons/icon-192.png" alt="" width="72" height="72"><span>Lunara</span></div>`;
@@ -155,9 +156,9 @@ export function render() {
       <h1>Instala Lunara</h1>
       <p class="muted">Para la mejor experiencia, instálala en tu ${p.desktop ? 'ordenador' : 'teléfono'}. Es gratis, ocupa muy poco y no necesitas ninguna tienda de apps.</p>
       <ul class="benefits">
-        <li><span>🔔</span><div><b>Recordatorios</b><small>Avisos de tu periodo, ventana fértil y píldora${p.ios ? ' (en iPhone solo funcionan con la app instalada)' : ''}.</small></div></li>
-        <li><span>⚡</span><div><b>Acceso rápido</b><small>Desde tu ${p.desktop ? 'escritorio' : 'pantalla de inicio'}, a pantalla completa.</small></div></li>
-        <li><span>✈️</span><div><b>Sin conexión</b><small>Registra tus días aunque no tengas internet.</small></div></li>
+        <li><span class="ib ib-primary">${icon('bell-ring')}</span><div><b>Recordatorios</b><small>Avisos de tu periodo, ventana fértil y píldora${p.ios ? ' (en iPhone solo funcionan con la app instalada)' : ''}.</small></div></li>
+        <li><span class="ib ib-primary">${icon('zap')}</span><div><b>Acceso rápido</b><small>Desde tu ${p.desktop ? 'escritorio' : 'pantalla de inicio'}, a pantalla completa.</small></div></li>
+        <li><span class="ib ib-primary">${icon('wifi-off')}</span><div><b>Sin conexión</b><small>Registra tus días aunque no tengas internet.</small></div></li>
       </ul>
       ${p.ios ? '<p class="status warn">En iPhone, la app instalada guarda sus datos aparte de Safari: instálala antes de empezar para no perder tu registro.</p>' : ''}`;
   }
@@ -168,7 +169,7 @@ export function render() {
       ? `${window.lunaraInstall ? '<button class="btn primary block" data-act="install">Instalar ahora</button>' : ''}
          <button class="btn ghost block" data-act="back">Volver</button>
          <button class="btn ghost block" data-act="browser">Continuar en el navegador</button>`
-      : `<button class="btn primary block" data-act="install">📲 Instalar app</button>
+      : `<button class="btn primary block" data-act="install">${icon('download')} Instalar app</button>
          <button class="btn ghost block" data-act="browser">Continuar en el navegador</button>`;
 
   return {

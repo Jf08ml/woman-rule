@@ -1,7 +1,8 @@
 import { getState, getLog, setPeriodDay } from '../store.js';
 import { computeStats, predict, buildDayMap, pregnancyInfo } from '../cycle.js';
 import { todayKey, addDays, fmt, fmtLong, fromKey, plural } from '../dates.js';
-import { PHASES, SYMPTOMS, MOODS, FLOW, babyFor, label } from '../catalog.js';
+import { PHASES, SYMPTOMS, MOODS, FLOW, babyFor, label, option } from '../catalog.js';
+import { icon, badge } from '../icons.js';
 import { esc, toast, modal } from '../ui.js';
 import { isIOS, isStandalone } from '../push.js';
 import { installHelp } from './install.js';
@@ -56,18 +57,18 @@ function todayLogCard() {
   const t = todayKey();
   const log = getLog(t);
   const items = [];
-  if (log.flow) items.push(`🩸 ${label(FLOW, log.flow)}`);
-  (log.symptoms || []).forEach((id) => { const o = SYMPTOMS.find((x) => x.id === id); if (o) items.push(`${o.icon} ${o.label}`); });
-  (log.moods || []).forEach((id) => { const o = MOODS.find((x) => x.id === id); if (o) items.push(`${o.icon} ${o.label}`); });
-  if (log.temp) items.push(`🌡️ ${log.temp} °C`);
-  if (log.water) items.push(`💧 ${log.water} vasos`);
-  if (log.pill) items.push('💊 Píldora tomada');
+  if (log.flow) items.push(['droplet', label(FLOW, log.flow)]);
+  (log.symptoms || []).forEach((id) => { const o = option(SYMPTOMS, id); if (o) items.push([o.icon, o.label]); });
+  (log.moods || []).forEach((id) => { const o = option(MOODS, id); if (o) items.push([o.icon, o.label]); });
+  if (log.temp) items.push(['thermometer', `${log.temp} °C`]);
+  if (log.water) items.push(['glass-water', `${log.water} vasos`]);
+  if (log.pill) items.push(['pill', 'Píldora tomada']);
   return `
   <section class="card">
     <div class="card-head"><h2>Mi día</h2><a class="link" href="#/log/${t}">${items.length ? 'Editar' : ''}</a></div>
-    ${items.length ? `<div class="tags">${items.map((x) => `<span class="tag">${esc(x)}</span>`).join('')}</div>`
+    ${items.length ? `<div class="tags">${items.map(([ic, x]) => `<span class="tag">${icon(ic)} ${esc(x)}</span>`).join('')}</div>`
       : `<p class="muted">Aún no has registrado nada hoy. ¿Cómo te sientes?</p>`}
-    <a class="btn primary block" href="#/log/${t}">+ Registrar síntomas</a>
+    <a class="btn primary block" href="#/log/${t}">${icon('plus')} Registrar síntomas</a>
   </section>`;
 }
 
@@ -75,7 +76,7 @@ function notifCard(s) {
   if (s.reminders.enabled) return '';
   return `
   <section class="card accent">
-    <div class="card-icon">🔔</div>
+    <div class="card-icon">${badge('bell-ring')}</div>
     <h2>Activa tus recordatorios</h2>
     <p class="muted">Te avisaremos antes de tu periodo, en tu ventana fértil, para tu píldora y más.</p>
     <a class="btn primary" href="#/settings/notifications">Activar notificaciones</a>
@@ -85,10 +86,10 @@ function notifCard(s) {
 function installCard() {
   if (isStandalone()) return '';
   if (window.lunaraInstall) {
-    return `<section class="card"><h2>📲 Instala Lunara</h2><p class="muted">Úsala como una app, sin conexión y con notificaciones.</p>
+    return `<section class="card"><h2 class="h-ic">${icon('smartphone')} Instala Lunara</h2><p class="muted">Úsala como una app, sin conexión y con notificaciones.</p>
       <button class="btn secondary" data-act="install">Instalar app</button></section>`;
   }
-  return `<section class="card"><h2>📲 Instala Lunara</h2>
+  return `<section class="card"><h2 class="h-ic">${icon('smartphone')} Instala Lunara</h2>
     <p class="muted">Acceso directo desde tu ${isIOS() ? 'pantalla de inicio. En iPhone es necesario para recibir notificaciones' : 'pantalla de inicio, sin conexión y con notificaciones'}.</p>
     <button class="btn secondary" data-act="install-help">Cómo instalar</button></section>`;
 }
@@ -107,24 +108,24 @@ function upcomingCard(pred) {
   const t = todayKey();
   const rows = [];
   const next = pred.upcoming[0];
-  rows.push(['🩸', 'Próximo periodo', pred.late ? `Retraso de ${plural(pred.late, 'día', 'días')}` : fmtLong(next.periodStart)]);
+  rows.push(['droplet', 'Próximo periodo', pred.late ? `Retraso de ${plural(pred.late, 'día', 'días')}` : fmtLong(next.periodStart)]);
   const fw = [pred.current, ...pred.upcoming].find((w) => w.fertileEnd >= t && !(pred.inPeriod && w === pred.current && w.fertileStart <= pred.last.end));
   if (fw) {
-    rows.push(['🌸', 'Ventana fértil', `${fmt(fw.fertileStart)} – ${fmt(fw.fertileEnd)}`]);
-    rows.push(['✨', 'Ovulación', fw.ovulation === t ? 'Hoy' : fmtLong(fw.ovulation)]);
+    rows.push(['flower-2', 'Ventana fértil', `${fmt(fw.fertileStart)} – ${fmt(fw.fertileEnd)}`]);
+    rows.push(['sparkles', 'Ovulación', fw.ovulation === t ? 'Hoy' : fmtLong(fw.ovulation)]);
   }
-  rows.push(['📅', 'Siguiente', fmt(pred.upcoming[1].periodStart, { day: 'numeric', month: 'long' })]);
+  rows.push(['calendar-days', 'Siguiente', fmt(pred.upcoming[1].periodStart, { day: 'numeric', month: 'long' })]);
   return `
   <section class="card">
     <h2>Próximas fechas</h2>
-    <ul class="list">${rows.map(([i, k, v]) => `<li><span class="li-ic">${i}</span><span>${k}</span><b>${v}</b></li>`).join('')}</ul>
+    <ul class="list">${rows.map(([i, k, v]) => `<li>${badge(i, i === 'droplet' || i === 'calendar-days' ? 'primary' : 'fertile')}<span>${k}</span><b>${v}</b></li>`).join('')}</ul>
   </section>`;
 }
 
 function pregnancyView(s) {
   const p = pregnancyInfo(s);
   if (!p) return `<section class="card"><p>Indica la fecha de tu última regla en Perfil para seguir tu embarazo.</p><a class="btn primary" href="#/settings">Ir a Perfil</a></section>`;
-  const [size, icon] = babyFor(p.week);
+  const size = babyFor(p.week);
   const deg = p.progress * 360;
   const [mx, my] = polar(150, 150, 124, Math.max(deg, 2));
   return `
@@ -141,14 +142,14 @@ function pregnancyView(s) {
     </div>
   </div>
   <section class="card baby">
-    <div class="baby-ic">${icon}</div>
+    <div class="hero-ic baby-ic">${icon('baby')}</div>
     <div><h2>Tu bebé</h2><p>Tiene aproximadamente el tamaño de <b>${size}</b>.</p></div>
   </section>
   <section class="card">
     <ul class="list">
-      <li><span class="li-ic">👶</span><span>Fecha probable de parto</span><b>${fmtLong(p.due)}</b></li>
-      <li><span class="li-ic">⏳</span><span>Faltan</span><b>${p.daysLeft > 0 ? plural(p.daysLeft, 'día', 'días') : '¡Ya es el momento!'}</b></li>
-      <li><span class="li-ic">📅</span><span>Última regla</span><b>${fmt(p.lmp, { day: 'numeric', month: 'long', year: 'numeric' })}</b></li>
+      <li>${badge('baby', 'preg')}<span>Fecha probable de parto</span><b>${fmtLong(p.due)}</b></li>
+      <li>${badge('hourglass', 'preg')}<span>Faltan</span><b>${p.daysLeft > 0 ? plural(p.daysLeft, 'día', 'días') : '¡Ya es el momento!'}</b></li>
+      <li>${badge('calendar-days', 'preg')}<span>Última regla</span><b>${fmt(p.lmp, { day: 'numeric', month: 'long', year: 'numeric' })}</b></li>
     </ul>
     <div class="progress"><span style="width:${(p.progress * 100).toFixed(1)}%"></span></div>
   </section>`;
@@ -194,8 +195,8 @@ export function render() {
   return {
     html: `
     <header class="topbar">
-      <div><p class="eyebrow">${fmtLong(t)}</p><h1>${hello} 🌙</h1></div>
-      <a href="#/calendar" class="icon-btn" aria-label="Calendario">📅</a>
+      <div><p class="eyebrow">${fmtLong(t)}</p><h1>${hello}</h1></div>
+      <a href="#/calendar" class="icon-btn" aria-label="Calendario">${icon('calendar')}</a>
     </header>
     ${notifCard(s)}
     ${body}
@@ -204,7 +205,7 @@ export function render() {
     bind(root) {
       root.querySelector('[data-act=period-today]')?.addEventListener('click', () => {
         setPeriodDay(t, true);
-        toast('Periodo registrado 🩸 Tus predicciones se han actualizado');
+        toast('Periodo registrado. Tus predicciones se han actualizado');
       });
       root.querySelector('[data-act=install-help]')?.addEventListener('click', () => {
         const h = installHelp();

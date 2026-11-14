@@ -3,6 +3,7 @@ import { computeStats, predict, buildDayMap } from '../cycle.js';
 import { todayKey, toKey, addDays, diffDays, fmtLong, monthName, WEEKDAYS, plural } from '../dates.js';
 import { FLOW, SYMPTOMS, MOODS, label } from '../catalog.js';
 import { esc, toast } from '../ui.js';
+import { icon } from '../icons.js';
 
 let cursor = null; // { y, m }
 let selected = null;
@@ -18,17 +19,17 @@ function dayCard(s, d, map, pred) {
   if (pred && d >= pred.last.start) lines.push(`Ciclo día ${diffDays(pred.last.start, d) % pred.avgCycle + 1}`);
   if (type) lines.push(TYPE_TEXT[type]);
   const tags = [];
-  if (log.flow) tags.push(`🩸 ${label(FLOW, log.flow)}`);
-  (log.symptoms || []).forEach((id) => tags.push(label(SYMPTOMS, id)));
-  (log.moods || []).forEach((id) => tags.push(label(MOODS, id)));
-  if (log.temp) tags.push(`🌡️ ${log.temp} °C`);
-  if (log.notes) tags.push(`📝 ${log.notes.slice(0, 40)}`);
+  if (log.flow) tags.push(['droplet', label(FLOW, log.flow)]);
+  (log.symptoms || []).forEach((id) => tags.push([SYMPTOMS.find((x) => x.id === id)?.icon || 'circle', label(SYMPTOMS, id)]));
+  (log.moods || []).forEach((id) => tags.push([MOODS.find((x) => x.id === id)?.icon || 'circle', label(MOODS, id)]));
+  if (log.temp) tags.push(['thermometer', `${log.temp} °C`]);
+  if (log.notes) tags.push(['notebook-pen', log.notes.slice(0, 40)]);
   const future = d > todayKey();
   return `
   <section class="card">
     <div class="card-head"><h2>${fmtLong(d)}</h2></div>
     ${lines.length ? `<p class="muted">${lines.join(' · ')}</p>` : ''}
-    ${tags.length ? `<div class="tags">${tags.map((x) => `<span class="tag">${esc(x)}</span>`).join('')}</div>` : ''}
+    ${tags.length ? `<div class="tags">${tags.map(([ic, x]) => `<span class="tag">${icon(ic)} ${esc(x)}</span>`).join('')}</div>` : ''}
     ${future ? '' : `<a class="btn primary block" href="#/log/${d}">${tags.length ? 'Editar registro' : 'Registrar este día'}</a>`}
   </section>`;
 }
@@ -56,7 +57,7 @@ export function render(params = []) {
     const cls = ['cal-cell', type && `day-${type}`, d === t && 'is-today', d === selected && !edit && 'is-selected', d > t && 'future'].filter(Boolean).join(' ');
     cells += `<button type="button" class="${cls}" data-day="${d}" ${edit && d > t ? 'disabled' : ''}>
       <span class="num">${n}</span>
-      ${edit ? `<span class="check ${isPeriod ? 'on' : ''}">${isPeriod ? '✓' : ''}</span>` : `<span class="dot ${logged ? 'on' : ''}"></span>`}
+      ${edit ? `<span class="check ${isPeriod ? 'on' : ''}">${isPeriod ? icon('check') : ''}</span>` : `<span class="dot ${logged ? 'on' : ''}"></span>`}
     </button>`;
   }
 
@@ -72,8 +73,8 @@ export function render(params = []) {
     <header class="topbar">
       <div><p class="eyebrow">${edit ? 'Toca los días de tu periodo' : 'Calendario'}</p><h1 class="cap">${monthName(cursor.y, cursor.m)}</h1></div>
       <div class="row">
-        <button class="icon-btn" data-nav="-1" aria-label="Mes anterior">‹</button>
-        <button class="icon-btn" data-nav="1" aria-label="Mes siguiente">›</button>
+        <button class="icon-btn" data-nav="-1" aria-label="Mes anterior">${icon('chevron-left')}</button>
+        <button class="icon-btn" data-nav="1" aria-label="Mes siguiente">${icon('chevron-right')}</button>
       </div>
     </header>
     ${summary}
@@ -90,7 +91,7 @@ export function render(params = []) {
     <div class="center-actions">
       ${edit
         ? `<a class="btn primary" href="#/calendar">Listo</a>`
-        : `<a class="btn secondary" href="#/calendar/edit">✏️ Editar fechas del periodo</a>
+        : `<a class="btn secondary" href="#/calendar/edit">${icon('pencil')} Editar fechas del periodo</a>
            <button class="btn ghost" data-act="today">Hoy</button>`}
     </div>
     ${edit ? `<p class="muted center small">Al marcar el primer día de un periodo se completan automáticamente ${stats.avgPeriod} días (hasta hoy). Toca un día marcado para quitarlo.</p>` : dayCard(s, selected, map, pred)}

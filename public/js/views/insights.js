@@ -3,6 +3,7 @@ import { computeStats, predict } from '../cycle.js';
 import { todayKey, addDays, diffDays, fmt } from '../dates.js';
 import { SYMPTOMS, MOODS } from '../catalog.js';
 import { esc, toast } from '../ui.js';
+import { icon } from '../icons.js';
 
 function lineChart(points, unit, decimals) {
   if (points.length < 2) return '<p class="muted small">Registra al menos 2 valores para ver la gráfica.</p>';
@@ -35,8 +36,8 @@ function topCounts(logs, field, catalog, since) {
   if (!arr.length) return '<p class="muted small">Sin registros en los últimos 90 días.</p>';
   const max = arr[0][1];
   return `<ul class="bars">${arr.map(([id, n]) => {
-    const o = catalog.find((x) => x.id === id) || { icon: '•', label: id };
-    return `<li><span>${o.icon} ${esc(o.label)}</span><i style="--w:${(n / max) * 100}%"></i><b>${n}</b></li>`;
+    const o = catalog.find((x) => x.id === id) || { icon: 'circle', label: id };
+    return `<li><span class="h-ic">${icon(o.icon)} ${esc(o.label)}</span><i style="--w:${(n / max) * 100}%"></i><b>${n}</b></li>`;
   }).join('')}</ul>`;
 }
 
@@ -95,7 +96,7 @@ export function render() {
     </div>
     ${stats.cycles.length < 2 ? '<p class="muted center small">Registra al menos 2 periodos para obtener estadísticas personalizadas. Mientras tanto usamos los valores de tu perfil.</p>' : ''}
 
-    ${alerts.length ? `<section class="card warn-card"><h2>⚠️ Para comentar con tu médico</h2><ul class="tips">${alerts.map((a) => `<li>${a}</li>`).join('')}</ul>
+    ${alerts.length ? `<section class="card warn-card"><h2 class="h-ic warn-ic">${icon('triangle-alert')} Para comentar con tu médico</h2><ul class="tips">${alerts.map((a) => `<li>${a}</li>`).join('')}</ul>
       <p class="muted small">Esto no es un diagnóstico. Un profesional de salud puede ayudarte a valorarlo.</p></section>` : ''}
 
     <section class="card">
@@ -105,10 +106,10 @@ export function render() {
 
     <section class="card"><h2>Síntomas frecuentes</h2><p class="muted small">Últimos 90 días</p>${topCounts(s.logs, 'symptoms', SYMPTOMS, since)}</section>
     <section class="card"><h2>Estado de ánimo</h2><p class="muted small">Últimos 90 días</p>${topCounts(s.logs, 'moods', MOODS, since)}</section>
-    <section class="card"><h2>🌡️ Temperatura basal</h2><p class="muted small">Últimos 60 días · un aumento sostenido de ~0,2 °C suele indicar que ya ovulaste.</p>${lineChart(temps, '°C', 2)}</section>
-    <section class="card"><h2>⚖️ Peso</h2>${lineChart(weights, 'kg', 1)}</section>
+    <section class="card"><h2 class="h-ic">${icon('thermometer')} Temperatura basal</h2><p class="muted small">Últimos 60 días · un aumento sostenido de ~0,2 °C suele indicar que ya ovulaste.</p>${lineChart(temps, '°C', 2)}</section>
+    <section class="card"><h2 class="h-ic">${icon('weight')} Peso</h2>${lineChart(weights, 'kg', 1)}</section>
 
-    <div class="center-actions"><button class="btn secondary" data-act="share">📤 Compartir resumen para mi médico</button></div>
+    <div class="center-actions"><button class="btn secondary" data-act="share">${icon('share-2')} Compartir resumen para mi médico</button></div>
     `,
     bind(root) {
       root.querySelector('[data-act=share]').addEventListener('click', async () => {

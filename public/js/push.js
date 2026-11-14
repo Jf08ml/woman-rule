@@ -143,7 +143,7 @@ export function startLocalChecker() {
 
 export async function testLocal() {
   const reg = await navigator.serviceWorker.ready;
-  await reg.showNotification('Lunara 🌙', {
+  await reg.showNotification('Lunara', {
     body: '¡Las notificaciones funcionan! Así verás tus recordatorios.',
     icon: '/icons/icon-192.png', badge: '/icons/badge-96.png', tag: 'test', data: { url: '/#/today' },
   });
@@ -154,7 +154,7 @@ export async function testServer(delay = 10) {
   if (!sub) throw new Error('No hay suscripción push');
   const res = await fetch('/api/test', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ subscription: sub.toJSON(), delay, body: 'Push del servidor recibido. Llegará aunque la app esté cerrada ✅' }),
+    body: JSON.stringify({ subscription: sub.toJSON(), delay, body: 'Push del servidor recibido. Llegará aunque la app esté cerrada.' }),
   });
   if (!res.ok) throw new Error('El servidor push no respondió');
 }

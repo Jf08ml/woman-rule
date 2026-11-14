@@ -6,6 +6,7 @@ import {
   permission, pushStatus, isIOS, isStandalone, notificationsSupported,
 } from '../push.js';
 import { esc, toast, modal, confirmDialog, sha256 } from '../ui.js';
+import { icon } from '../icons.js';
 
 let scrolledTo = null;
 const rerender = () => window.dispatchEvent(new Event('rerender'));
@@ -19,7 +20,7 @@ function notifStatus(s) {
   }
   if (perm === 'denied') return '<p class="status warn">Las notificaciones están bloqueadas. Permítelas en los ajustes del navegador para este sitio.</p>';
   if (!s.reminders.enabled) return '<p class="status">Notificaciones desactivadas.</p>';
-  if (pushStatus.server) return `<p class="status ok">✅ Push activo: recibirás avisos aunque la app esté cerrada${pushStatus.scheduled ? ` · ${pushStatus.scheduled} programados` : ''}.</p>`;
+  if (pushStatus.server) return `<p class="status ok">${icon('circle-check')} Push activo: recibirás avisos aunque la app esté cerrada${pushStatus.scheduled ? ` · ${pushStatus.scheduled} programados` : ''}.</p>`;
   if (pushStatus.lastSync) return `<p class="status warn">Modo local: los avisos llegan cuando el navegador lo permite (servidor push no disponible${pushStatus.error ? `: ${esc(pushStatus.error)}` : ''}).</p>`;
   return '<p class="status">Sincronizando…</p>';
 }
@@ -61,8 +62,8 @@ export function render(params = []) {
     <section class="card">
       <h2>Mi objetivo</h2>
       <div class="seg-ctl">
-        ${[['track', '🩸 Seguir mi ciclo'], ['conceive', '🌸 Quedar embarazada'], ['pregnant', '🤰 Estoy embarazada']]
-          .map(([v, l]) => `<button type="button" data-goal="${v}" class="${p.goal === v ? 'on' : ''}">${l}</button>`).join('')}
+        ${[['track', 'droplet', 'Seguir mi ciclo'], ['conceive', 'flower-2', 'Quedar embarazada'], ['pregnant', 'baby', 'Estoy embarazada']]
+          .map(([v, ic, l]) => `<button type="button" data-goal="${v}" class="${p.goal === v ? 'on' : ''}">${icon(ic)} ${l}</button>`).join('')}
       </div>
       ${p.goal === 'pregnant' ? `
         <label class="field">Fecha de inicio de la última regla
@@ -81,7 +82,7 @@ export function render(params = []) {
     </section>
 
     <section class="card" id="notifications">
-      <div class="card-head"><h2>🔔 Notificaciones</h2>
+      <div class="card-head"><h2 class="h-ic">${icon('bell')} Notificaciones</h2>
         <label class="switch"><input type="checkbox" data-act="notif" ${r.enabled ? 'checked' : ''}><span></span></label>
       </div>
       ${notifStatus(s)}
@@ -89,7 +90,7 @@ export function render(params = []) {
         <label class="field inline">Hora de los avisos del ciclo<input type="time" data-act="time" value="${r.time}"></label>
         <ul class="rems">${relevantReminders(p.goal).map((i) => reminderRow(s, i)).join('')}</ul>
         <div class="rem-main discreet">
-          <div><b>🕶️ Modo discreto</b><small>Las notificaciones no muestran detalles (“Tienes un recordatorio nuevo”).</small></div>
+          <div><b class="h-ic">${icon('eye-off')} Modo discreto</b><small>Las notificaciones no muestran detalles (“Tienes un recordatorio nuevo”).</small></div>
           <label class="switch"><input type="checkbox" data-act="discreet" ${s.settings.discreet ? 'checked' : ''}><span></span></label>
         </div>
         <div class="row wrap">
@@ -100,7 +101,7 @@ export function render(params = []) {
     </section>
 
     <section class="card">
-      <h2>🔒 Privacidad</h2>
+      <h2 class="h-ic">${icon('lock')} Privacidad</h2>
       <p class="muted small">Tus registros de salud se guardan solo en este dispositivo. Al servidor solo llega la agenda de recordatorios.</p>
       <div class="row wrap">
         ${s.settings.pinHash
@@ -110,14 +111,14 @@ export function render(params = []) {
     </section>
 
     <section class="card">
-      <h2>🎨 Apariencia</h2>
+      <h2 class="h-ic">${icon('palette')} Apariencia</h2>
       <div class="seg-ctl">
         ${[['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([v, l]) => `<button type="button" data-theme="${v}" class="${s.settings.theme === v ? 'on' : ''}">${l}</button>`).join('')}
       </div>
     </section>
 
     <section class="card">
-      <h2>💾 Mis datos</h2>
+      <h2 class="h-ic">${icon('database')} Mis datos</h2>
       <div class="row wrap">
         <button class="btn secondary" data-act="export">Exportar copia</button>
         <label class="btn secondary">Importar copia<input type="file" accept="application/json,.json" data-act="import" hidden></label>
@@ -125,7 +126,7 @@ export function render(params = []) {
       </div>
     </section>
 
-    ${!isStandalone() && window.lunaraInstall ? '<div class="center-actions"><button class="btn primary" data-act="install">📲 Instalar Lunara</button></div>' : ''}
+    ${!isStandalone() && window.lunaraInstall ? `<div class="center-actions"><button class="btn primary" data-act="install">${icon('download')} Instalar Lunara</button></div>` : ''}
     <p class="disclaimer">Lunara · v1.0 — Las predicciones son estimaciones basadas en tus datos y no sustituyen el consejo médico ni un método anticonceptivo.</p>
     `,
     bind(root) {
@@ -153,7 +154,7 @@ export function render(params = []) {
             const { server } = await enableNotifications();
             update((st) => { st.reminders.enabled = true; });
             const res = await syncReminders(getState(), { force: true });
-            toast(server && res.server ? '¡Notificaciones activadas! 🔔' : 'Notificaciones activadas en modo local');
+            toast(server && res.server ? '¡Notificaciones activadas!' : 'Notificaciones activadas en modo local');
             rerender();
           } catch (err) {
             e.target.checked = false;
@@ -181,7 +182,7 @@ export function render(params = []) {
         try { await testLocal(); } catch (err) { toast(err.message); }
       });
       root.querySelector('[data-act=test-server]')?.addEventListener('click', async () => {
-        try { await testServer(10); toast('Push enviado: llegará en 10 segundos ⏳'); } catch (err) { toast(err.message, 4000); }
+        try { await testServer(10); toast('Push enviado: llegará en 10 segundos'); } catch (err) { toast(err.message, 4000); }
       });
 
       // PIN
@@ -200,7 +201,7 @@ export function render(params = []) {
             if (a !== b) { toast('Los PIN no coinciden'); return; }
             const hash = await sha256(`lunara:${a}`);
             update((st) => { st.settings.pinHash = hash; });
-            close(); toast('PIN activado 🔒');
+            close(); toast('PIN activado');
           };
         });
       });
@@ -226,7 +227,7 @@ export function render(params = []) {
           if (!Array.isArray(data.periodDays) || typeof data.logs !== 'object') throw new Error();
           data.periodDays = data.periodDays.filter(isValidKey);
           if (await confirmDialog('Esto reemplazará tus datos actuales con los de la copia. ¿Continuar?', 'Importar')) {
-            replaceState(data); toast('Copia importada ✅');
+            replaceState(data); toast('Copia importada');
           }
         } catch { toast('El archivo no es una copia válida de Lunara'); }
         e.target.value = '';

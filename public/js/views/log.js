@@ -2,6 +2,7 @@ import { getState, getLog, setLog, setPeriodDay } from '../store.js';
 import { todayKey, addDays, fmtLong, isValidKey } from '../dates.js';
 import { FLOW, SYMPTOMS, MOODS, DISCHARGE, SEX, OV_TEST, PREG_TEST } from '../catalog.js';
 import { esc, chips, toast } from '../ui.js';
+import { icon } from '../icons.js';
 
 export function render(params = []) {
   const s = getState();
@@ -17,13 +18,13 @@ export function render(params = []) {
   return {
     html: `
     <header class="topbar sticky">
-      <a class="icon-btn" href="#/log/${prev}" aria-label="Día anterior">‹</a>
+      <a class="icon-btn" href="#/log/${prev}" aria-label="Día anterior">${icon('chevron-left')}</a>
       <div class="center"><p class="eyebrow">${d === t ? 'Hoy' : 'Registro'}</p><h1 class="h-sm cap">${fmtLong(d)}</h1></div>
-      ${next <= t ? `<a class="icon-btn" href="#/log/${next}" aria-label="Día siguiente">›</a>` : '<span class="icon-btn ghost"></span>'}
+      ${next <= t ? `<a class="icon-btn" href="#/log/${next}" aria-label="Día siguiente">${icon('chevron-right')}</a>` : '<span class="icon-btn ghost"></span>'}
     </header>
 
     <section class="card">
-      <div class="card-head"><h2>🩸 Periodo</h2>
+      <div class="card-head"><h2 class="h-ic">${icon('droplet')} Periodo</h2>
         <label class="switch"><input type="checkbox" data-act="period" ${isPeriod ? 'checked' : ''}><span></span></label>
       </div>
       ${isPeriod ? `<p class="muted small">Intensidad del flujo</p>${chips(FLOW, log.flow, 'flow', false)}` : '<p class="muted small">Actívalo si hoy tienes el periodo.</p>'}
@@ -36,7 +37,7 @@ export function render(params = []) {
 
     ${showPill || s.profile.goal === 'track' ? `
     <section class="card">
-      <div class="card-head"><h2>💊 Píldora anticonceptiva</h2>
+      <div class="card-head"><h2 class="h-ic">${icon('pill')} Píldora anticonceptiva</h2>
         <label class="switch"><input type="checkbox" data-act="pill" ${log.pill ? 'checked' : ''}><span></span></label>
       </div>
       <p class="muted small">Marca si tomaste tu píldora este día.</p>
@@ -51,23 +52,23 @@ export function render(params = []) {
     <section class="card">
       <h2>Mediciones</h2>
       <div class="measure">
-        <label>🌡️ Temperatura basal <span class="unit">°C</span>
+        <label><span class="h-ic">${icon('thermometer')} Temperatura basal <span class="unit">°C</span></span>
           <input type="number" inputmode="decimal" step="0.01" min="34" max="42" data-field="temp" value="${log.temp ?? ''}" placeholder="36.50"></label>
-        <label>⚖️ Peso <span class="unit">kg</span>
+        <label><span class="h-ic">${icon('weight')} Peso <span class="unit">kg</span></span>
           <input type="number" inputmode="decimal" step="0.1" min="20" max="300" data-field="weight" value="${log.weight ?? ''}" placeholder="—"></label>
-        <label>😴 Sueño <span class="unit">horas</span>
+        <label><span class="h-ic">${icon('bed')} Sueño <span class="unit">horas</span></span>
           <input type="number" inputmode="decimal" step="0.5" min="0" max="24" data-field="sleep" value="${log.sleep ?? ''}" placeholder="—"></label>
       </div>
       <div class="water">
-        <span>💧 Agua</span>
-        <button class="icon-btn" data-water="-1" aria-label="Quitar vaso">−</button>
+        <span class="h-ic">${icon('glass-water')} Agua</span>
+        <button class="icon-btn" data-water="-1" aria-label="Quitar vaso">${icon('minus')}</button>
         <b>${log.water || 0}</b><span class="muted small">/ 8 vasos</span>
-        <button class="icon-btn" data-water="1" aria-label="Añadir vaso">+</button>
+        <button class="icon-btn" data-water="1" aria-label="Añadir vaso">${icon('plus')}</button>
       </div>
     </section>
 
     <section class="card">
-      <h2>📝 Notas</h2>
+      <h2 class="h-ic">${icon('notebook-pen')} Notas</h2>
       <textarea data-field="notes" rows="3" maxlength="1000" placeholder="Escribe lo que quieras recordar…">${esc(log.notes || '')}</textarea>
     </section>
     <div class="center-actions"><a class="btn primary" href="#/today">Listo</a></div>
@@ -76,7 +77,7 @@ export function render(params = []) {
       root.querySelector('[data-act=period]').addEventListener('change', (e) => {
         setPeriodDay(d, e.target.checked);
         if (!e.target.checked) setLog(d, { flow: null });
-        toast(e.target.checked ? 'Día de periodo registrado 🩸' : 'Día de periodo eliminado');
+        toast(e.target.checked ? 'Día de periodo registrado' : 'Día de periodo eliminado');
       });
       root.querySelector('[data-act=pill]')?.addEventListener('change', (e) => setLog(d, { pill: e.target.checked }));
       root.querySelectorAll('.chips').forEach((group) => {

@@ -1,4 +1,4 @@
-# Lunara 🌙 — PWA de seguimiento del ciclo menstrual
+# Lunara — PWA de seguimiento del ciclo menstrual
 
 PWA instalable (Android, iOS 16.4+, escritorio) con funcionalidades equivalentes a las apps de seguimiento del ciclo tipo Flo, y **notificaciones push reales** que llegan aunque la app esté cerrada.
 
