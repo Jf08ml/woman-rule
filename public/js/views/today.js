@@ -73,6 +73,16 @@ function todayLogCard() {
   </section>`;
 }
 
+function guideCard(s) {
+  if (s.settings.guideSeen) return '';
+  return `
+  <a class="card link-card" href="#/guide">
+    ${badge('book-open')}
+    <span><b>¿Primera vez en Lunara?</b><small>Descubre cómo usarla en la guía</small></span>
+    ${icon('chevron-right')}
+  </a>`;
+}
+
 function notifCard(s) {
   if (s.reminders.enabled) return '';
   return `
@@ -197,8 +207,12 @@ export function render() {
     html: `
     <header class="topbar">
       <div><p class="eyebrow">${fmtLong(t)}</p><h1>${hello}</h1></div>
-      <a href="#/calendar" class="icon-btn" aria-label="Calendario">${icon('calendar')}</a>
+      <div class="row">
+        <a href="#/guide" class="icon-btn" aria-label="Guía de uso">${icon('circle-help')}</a>
+        <a href="#/calendar" class="icon-btn" aria-label="Calendario">${icon('calendar')}</a>
+      </div>
     </header>
+    ${guideCard(s)}
     ${notifCard(s)}
     ${body}
     ${installCard()}

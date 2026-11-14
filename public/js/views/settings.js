@@ -6,7 +6,7 @@ import {
   permission, pushStatus, isIOS, isStandalone, notificationsSupported,
 } from '../push.js';
 import { esc, toast, modal, confirmDialog, sha256 } from '../ui.js';
-import { icon } from '../icons.js';
+import { icon, badge } from '../icons.js';
 
 let scrolledTo = null;
 const rerender = () => window.dispatchEvent(new Event('rerender'));
@@ -58,6 +58,12 @@ export function render(params = []) {
   return {
     html: `
     <header class="topbar"><div><p class="eyebrow">Perfil y ajustes</p><h1>${p.name ? esc(p.name) : 'Mi perfil'}</h1></div></header>
+
+    <a class="card link-card" href="#/guide">
+      ${badge('book-open')}
+      <span><b>Guía de uso</b><small>Aprende a usar Lunara paso a paso</small></span>
+      ${icon('chevron-right')}
+    </a>
 
     <section class="card">
       <h2>Mi objetivo</h2>

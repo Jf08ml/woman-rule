@@ -28,7 +28,7 @@ export const defaults = () => ({
     bbt: { on: false, time: '07:00' },
     pregnancyWeekly: { on: true },
   },
-  settings: { theme: 'auto', pinHash: null, discreet: false },
+  settings: { theme: 'auto', pinHash: null, discreet: false, guideSeen: false },
 });
 
 function merge(base, saved) {

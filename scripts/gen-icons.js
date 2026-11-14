@@ -55,7 +55,7 @@ const ICONS = [
   // interfaz
   'calendar', 'calendar-days', 'bell', 'bell-ring', 'smartphone', 'download', 'monitor-down', 'chevron-left', 'chevron-right',
   'check', 'circle-check', 'pencil', 'lock', 'palette', 'database', 'share-2', 'copy', 'eye-off', 'wifi-off', 'zap', 'info',
-  'triangle-alert', 'plus', 'minus', 'user', 'clipboard-list', 'notebook-pen', 'square-plus', 'ellipsis', 'ellipsis-vertical', 'menu', 'share', 'delete',
+  'triangle-alert', 'plus', 'minus', 'user', 'clipboard-list', 'notebook-pen', 'square-plus', 'ellipsis', 'ellipsis-vertical', 'menu', 'share', 'delete', 'circle-help', 'book-open',
   // ciclo y salud
   'droplet', 'droplets', 'dot', 'flower-2', 'sparkles', 'egg', 'baby', 'hourglass', 'thermometer', 'weight', 'bed', 'glass-water',
   'pill', 'moon', 'moon-star', 'heart', 'heart-pulse', 'test-tube-diagonal', 'sprout', 'target',

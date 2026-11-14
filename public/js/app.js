@@ -6,10 +6,11 @@ import * as calendar from './views/calendar.js';
 import * as log from './views/log.js';
 import * as insights from './views/insights.js';
 import * as settings from './views/settings.js';
+import * as guide from './views/guide.js';
 import * as onboarding from './views/onboarding.js';
 import * as lock from './views/lock.js';
 
-const routes = { today, calendar, log, insights, settings };
+const routes = { today, calendar, log, insights, settings, guide };
 const view = document.getElementById('view');
 const tabbar = document.getElementById('tabbar');
 let unlocked = false;
