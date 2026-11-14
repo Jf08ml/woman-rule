@@ -298,6 +298,22 @@ textarea { resize: vertical; }
 .keypad button { height: 72px; border-radius: 50%; border: 0; background: var(--surface); color: var(--text); font-size: 1.6rem; box-shadow: var(--shadow); cursor: pointer; }
 .pin-input { margin-bottom: 10px; text-align: center; letter-spacing: .4em; font-size: 1.3rem !important; }
 
+/* Instalación */
+.install-gate .ob-body { justify-content: center; }
+.install-app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px auto; font-size: .85rem; color: var(--muted); }
+.install-app-icon img { border-radius: 22%; box-shadow: var(--shadow); }
+.install-app-icon.big img { width: 96px; height: 96px; }
+.benefits { list-style: none; padding: 0; margin: 4px 0; display: flex; flex-direction: column; gap: 12px; }
+.benefits li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); }
+.benefits li > span { font-size: 1.4rem; }
+.benefits small { display: block; color: var(--muted); }
+.install-steps { margin: 4px 0 8px; padding: 0; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 10px; }
+.install-steps li { counter-increment: st; display: flex; gap: 12px; align-items: center; background: var(--surface); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); line-height: 1.5; }
+.install-steps li::before { content: counter(st); flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: .9rem; }
+.ic { width: 22px; height: 22px; vertical-align: -5px; fill: none; stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ic circle { fill: var(--primary); stroke: none; }
+.modal .install-steps li { box-shadow: none; background: var(--surface-2); }
+
 /* Modal y toast */
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(20, 8, 15, .45); display: flex; align-items: flex-end; justify-content: center; opacity: 0; transition: opacity .2s; }
 .modal-backdrop.open { opacity: 1; }

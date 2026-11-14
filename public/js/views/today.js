@@ -2,8 +2,9 @@ import { getState, getLog, setPeriodDay } from '../store.js';
 import { computeStats, predict, buildDayMap, pregnancyInfo } from '../cycle.js';
 import { todayKey, addDays, fmt, fmtLong, fromKey, plural } from '../dates.js';
 import { PHASES, SYMPTOMS, MOODS, FLOW, babyFor, label } from '../catalog.js';
-import { esc, toast } from '../ui.js';
+import { esc, toast, modal } from '../ui.js';
 import { isIOS, isStandalone } from '../push.js';
+import { installHelp } from './install.js';
 
 const polar = (cx, cy, r, deg) => {
   const a = ((deg - 90) * Math.PI) / 180;
@@ -87,10 +88,9 @@ function installCard() {
     return `<section class="card"><h2>📲 Instala Lunara</h2><p class="muted">Úsala como una app, sin conexión y con notificaciones.</p>
       <button class="btn secondary" data-act="install">Instalar app</button></section>`;
   }
-  if (isIOS()) {
-    return `<section class="card"><h2>📲 Instala Lunara</h2><p class="muted">En Safari toca <b>Compartir</b> → <b>Añadir a pantalla de inicio</b>. Es necesario para recibir notificaciones en iPhone.</p></section>`;
-  }
-  return '';
+  return `<section class="card"><h2>📲 Instala Lunara</h2>
+    <p class="muted">Acceso directo desde tu ${isIOS() ? 'pantalla de inicio. En iPhone es necesario para recibir notificaciones' : 'pantalla de inicio, sin conexión y con notificaciones'}.</p>
+    <button class="btn secondary" data-act="install-help">Cómo instalar</button></section>`;
 }
 
 function phaseCard(pred) {
@@ -205,6 +205,11 @@ export function render() {
       root.querySelector('[data-act=period-today]')?.addEventListener('click', () => {
         setPeriodDay(t, true);
         toast('Periodo registrado 🩸 Tus predicciones se han actualizado');
+      });
+      root.querySelector('[data-act=install-help]')?.addEventListener('click', () => {
+        const h = installHelp();
+        modal(`<h2>${h.title}</h2><ol class="install-steps">${h.steps.map((s) => `<li><span>${s}</span></li>`).join('')}</ol>
+          ${h.note ? `<p class="status">${h.note}</p>` : ''}<div class="row-end"><button class="btn primary" data-close>Entendido</button></div>`);
       });
       root.querySelector('[data-act=install]')?.addEventListener('click', async () => {
         const e = window.lunaraInstall;

@@ -1,5 +1,6 @@
 import { getState, subscribe } from './store.js';
-import { registerSW, scheduleSync, startLocalChecker, syncReminders } from './push.js';
+import { registerSW, scheduleSync, startLocalChecker, syncReminders, isStandalone } from './push.js';
+import * as install from './views/install.js';
 import * as today from './views/today.js';
 import * as calendar from './views/calendar.js';
 import * as log from './views/log.js';
@@ -43,6 +44,11 @@ export function render() {
     mount(lock.render({ onUnlock: () => { unlocked = true; render(); } }), 'lock');
     return;
   }
+  if (!s.onboarded && !isStandalone() && !install.installChoiceMade()) {
+    tabbar.hidden = true;
+    mount(install.render(), 'install');
+    return;
+  }
   if (!s.onboarded) {
     tabbar.hidden = true;
     mount(onboarding.render(), 'onboarding');
@@ -67,7 +73,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   window.lunaraInstall = e;
   render();
 });
-window.addEventListener('appinstalled', () => { window.lunaraInstall = null; render(); });
+window.addEventListener('appinstalled', () => { window.lunaraInstall = null; install.markInstalled(); render(); });
 
 // Clic en una notificación con la app abierta
 navigator.serviceWorker?.addEventListener('message', (e) => {
