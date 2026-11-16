@@ -7,6 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createPushService, HttpError } from '../lib/push-core.js';
 import { fileStore } from '../lib/stores.js';
+import { createFeedbackService, feedbackFileStore } from '../lib/feedback.js';
+import crypto from 'node:crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
@@ -29,13 +31,24 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 }
 
 const service = createPushService({ store: fileStore(DATA_DIR), vapid, subject: process.env.VAPID_SUBJECT });
+// Clave del panel de mejoras (/admin.html): variable de entorno o archivo generado automáticamente
+const adminKeyFile = path.join(DATA_DIR, 'admin-key.txt');
+let adminKey = process.env.FEEDBACK_ADMIN_KEY;
+if (!adminKey) {
+  if (!fs.existsSync(adminKeyFile)) fs.writeFileSync(adminKeyFile, crypto.randomBytes(18).toString('base64url'));
+  adminKey = fs.readFileSync(adminKeyFile, 'utf8').trim();
+  console.log('Clave del panel de mejoras (/admin.html):', adminKey);
+}
+const feedback = createFeedbackService({ store: feedbackFileStore(DATA_DIR), adminKey });
+
 setInterval(() => service.tick().catch((e) => console.error(e)), 30_000);
 
 const app = express();
 app.use(express.json({ limit: '200kb' }));
 
 const handle = (fn) => async (req, res) => {
-  try { res.json(await fn(req.body || {})); } catch (err) {
+  res.set('Cache-Control', 'no-store');
+  try { res.json(await fn(req.body || {}, req)); } catch (err) {
     if (err instanceof HttpError) res.status(err.status).json({ error: err.message });
     else { console.error(err); res.status(500).json({ error: 'Error interno' }); }
   }
@@ -50,6 +63,12 @@ app.post('/api/test', handle(async (b) => {
   setTimeout(run, delayMs);
   return { ok: true, delay: delayMs / 1000 };
 }));
+
+app.post('/api/feedback', handle((b, req) => feedback.submit(b, req.ip)));
+app.get('/api/feedback', handle((_b, req) => (req.query.admin
+  ? feedback.list(req.headers.authorization)
+  : feedback.statuses(String(req.query.ids || '').split(',').filter(Boolean)))));
+app.post('/api/feedback-admin', handle((b, req) => feedback.admin(req.headers.authorization, b)));
 
 app.use((req, res, next) => {
   if (req.path === '/sw.js' || req.path.endsWith('.webmanifest') || req.path === '/' || req.path.endsWith('.html')) {

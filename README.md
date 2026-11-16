@@ -13,6 +13,7 @@ PWA instalable (Android, iOS 16.4+, escritorio) con funcionalidades equivalentes
 | **Perfil de salud** | Método anticonceptivo (calendario de blíster/parche/anillo, inyección, implante y DIU; sin ventana fértil con métodos hormonales), actividad sexual, edad, estatura y peso (IMC), regularidad, situación (lactancia, posparto, perimenopausia, tras dejar la píldora), condiciones (SOP, endometriosis, tiroides…). Ajusta predicciones (rangos en ciclos irregulares), avisos y consejos |
 | **Objetivos** | Seguir el ciclo · Buscar embarazo · **Modo embarazo** (semana, trimestre, tamaño del bebé, fecha probable de parto) |
 | **Notificaciones** | Periodo próximo (N días antes), inicio del periodo, retraso, ventana fértil, ovulación, anticonceptivo (tomas del blíster, descanso, cambio de parche/anillo, inyección, revisión del dispositivo), registrar síntomas, temperatura basal, agua (4 horas), embarazo semana a semana, **modo discreto**, botones de prueba |
+| **Mejoras** | Buzón de sugerencias en Perfil → Mejoras; cada usuaria ve el estado y la respuesta de las suyas. Panel privado en `/admin.html` para responder y cambiar estados |
 | **Privacidad** | Datos solo en el dispositivo (localStorage), bloqueo con PIN, exportar/importar copia JSON, borrar todo |
 | **PWA** | Instalable, funciona sin conexión, atajos, tema claro/oscuro |
 
@@ -45,6 +46,7 @@ En Vercel la app usa funciones serverless (`api/`), **Upstash Redis** para guard
    - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (no las cambies después: invalidarían las suscripciones)
    - `VAPID_SUBJECT` = `mailto:tu-correo@dominio.com`
    - `CRON_SECRET` (Vercel lo envía al cron; protege `/api/tick`)
+   - `FEEDBACK_ADMIN_KEY`: clave larga y secreta para entrar al panel de mejoras (`/admin.html`)
 4. **Redespliega** para que tome las variables. Comprueba en *Settings → Cron Jobs* que aparece `/api/tick` cada minuto.
 5. Abre la URL en el móvil, actívalas en *Perfil → Notificaciones* y pulsa **Probar push (10 s)**.
 
@@ -59,6 +61,7 @@ Web Push requiere **HTTPS** (salvo en `localhost`). `npm start` funciona en Rend
 | `PORT` | Puerto (por defecto 3000) |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Claves fijas (recomendado; si cambian, las suscripciones existentes dejan de valer) |
 | `VAPID_SUBJECT` | `mailto:tu-correo@dominio.com` de contacto |
+| `FEEDBACK_ADMIN_KEY` | Clave del panel de mejoras (`/admin.html`). Si no se define, se genera en `DATA_DIR/admin-key.txt` y se muestra al arrancar |
 | `DATA_DIR` | Carpeta persistente para `db.json` (suscripciones y agenda) |
 
 Para probar en el móvil durante el desarrollo puedes usar un túnel HTTPS (p. ej. `cloudflared tunnel --url http://localhost:3000`).
@@ -68,6 +71,8 @@ Para probar en el móvil durante el desarrollo puedes usar un túnel HTTPS (p. e
 ```
 lib/push-core.js        Lógica push compartida (sync, tick, pruebas)
 lib/stores.js           Almacenamiento: archivo JSON (local) o Upstash Redis (Vercel)
+lib/feedback.js         Buzón de mejoras: validación, límite de envíos y gestión (archivo o Redis)
+public/admin.html       Panel privado para gestionar las sugerencias
 api/*.js                Funciones serverless de Vercel (+ cron /api/tick)
 vercel.json             Salida estática, cron cada minuto y cabeceras
 server/server.js        Servidor Express local (mismo núcleo, planificador cada 30 s)

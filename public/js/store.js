@@ -28,6 +28,7 @@ export const defaults = () => ({
   periodDays: [], // claves 'YYYY-MM-DD' ordenadas
   logs: {}, // clave -> { flow, symptoms[], moods[], discharge, sex, pill, temp, weight, water, sleep, ovTest, pregTest, notes }
   pregnancy: { lmp: null },
+  feedback: [], // sugerencias enviadas: { id, category, text, at }
   reminders: {
     enabled: false,
     time: '09:00',

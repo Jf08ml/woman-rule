@@ -11,6 +11,7 @@ import {
   fertilityTracked, methodHasReminder, takesPill, contraceptionPlan, bmi,
 } from '../health.js';
 import { icon, badge } from '../icons.js';
+import { APP_VERSION } from './feedback.js';
 
 let scrolledTo = null;
 const rerender = () => window.dispatchEvent(new Event('rerender'));
@@ -141,6 +142,12 @@ export function render(params = []) {
       ${icon('chevron-right')}
     </a>
 
+    <a class="card link-card" href="#/feedback">
+      ${badge('sparkles')}
+      <span><b>Mejoras</b><small>Sugiere funciones o cuéntanos qué falla</small></span>
+      ${icon('chevron-right')}
+    </a>
+
     <section class="card">
       <h2>Mi objetivo</h2>
       <div class="seg-ctl">
@@ -211,7 +218,7 @@ export function render(params = []) {
     </section>
 
     ${!isStandalone() && window.lunaraInstall ? `<div class="center-actions"><button class="btn primary" data-act="install">${icon('download')} Instalar Lunara</button></div>` : ''}
-    <p class="disclaimer">Lunara · v1.0 — Las predicciones son estimaciones basadas en tus datos y no sustituyen el consejo médico ni un método anticonceptivo.</p>
+    <p class="disclaimer">Lunara · v${APP_VERSION} — Las predicciones son estimaciones basadas en tus datos y no sustituyen el consejo médico ni un método anticonceptivo.</p>
     `,
     bind(root) {
       if (['notifications', 'health'].includes(params[0]) && scrolledTo !== params[0]) {

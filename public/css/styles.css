@@ -388,3 +388,17 @@ textarea { resize: vertical; }
 .guide-legend span { display: flex; align-items: center; gap: 10px; }
 .guide-legend .lg { width: 16px; height: 16px; }
 .lg-dot { width: 6px !important; height: 6px !important; margin: 0 5px; background: var(--text); opacity: .7; }
+
+/* Mejoras */
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.fb-list { list-style: none; margin: 0; padding: 0; }
+.fb-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.fb-list li:last-child { border-bottom: 0; }
+.fb-list p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.fb-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fb-status { font-size: .75rem; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-weight: 600; }
+.fb-status.mid { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.fb-status.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.fb-reply { display: flex; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--primary-soft); font-size: .9rem; }
+.fb-reply .i { color: var(--primary); flex: none; margin-top: 2px; }
+button.link { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }

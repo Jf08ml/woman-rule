@@ -108,6 +108,15 @@ const S = [
       <p class="muted small">Estos datos solo se guardan en tu dispositivo y se incluyen en el resumen para tu médico.</p>`,
   },
   {
+    id: 'feedback', ic: 'sparkles', title: 'Sugerir mejoras',
+    body: `
+      <p>En <b>Perfil → Mejoras</b> puedes proponer nuevas funciones, pedir cambios o avisarnos si algo falla.</p>
+      <ul class="tips">
+        <li>En <b>Mis sugerencias</b> verás si la tuya está en revisión, planeada o hecha, y nuestra respuesta.</li>
+        <li>Solo se envía lo que escribes (y la versión de la app): nunca tus registros de salud.</li>
+      </ul>`,
+  },
+  {
     id: 'privacy', ic: 'lock', title: 'Privacidad y copias de seguridad',
     body: `
       <ul class="tips">
