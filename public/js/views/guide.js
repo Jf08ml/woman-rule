@@ -58,6 +58,8 @@ const S = [
         <li>La <b>ovulación</b> se estima unos 14 días antes del siguiente periodo (tu fase lútea, ajustable en Perfil).</li>
         <li>La <b>ventana fértil</b> va de 5 días antes de la ovulación hasta 1 día después.</li>
         <li>La temperatura basal y las pruebas de ovulación te ayudan a confirmar lo que pasa en tu cuerpo.</li>
+        <li>Si tus ciclos son irregulares (o tienes SOP, estás en lactancia o dejaste hace poco la píldora), verás un <b>rango</b> de fechas y una ventana fértil más amplia.</li>
+        <li>Con un anticonceptivo hormonal no calculamos ovulación: el sangrado sigue el calendario de tu método.</li>
       </ul>
       <p class="status warn">${icon('triangle-alert')} Son estimaciones: no uses Lunara como método anticonceptivo.</p>`,
   },
@@ -91,6 +93,19 @@ const S = [
         <li><b>Quedar embarazada</b>: lo mismo, poniendo el foco en tu ventana fértil.</li>
         <li><b>Estoy embarazada</b>: indica la fecha de tu última regla y verás la semana de embarazo, el tamaño del bebé y la fecha probable de parto.</li>
       </ul>`,
+  },
+  {
+    id: 'health', ic: 'stethoscope', title: 'Tu perfil de salud',
+    body: `
+      <p>En <b>Perfil → Mi salud</b> puedes añadir datos opcionales que hacen tus predicciones más precisas:</p>
+      <ul class="tips">
+        <li><b>Método anticonceptivo</b>: con píldora, parche, anillo, inyección, implante o DIU hormonal no hay ovulación, así que ocultamos la ventana fértil. Con la fecha de inicio calculamos tu blíster, tus días de descanso y el sangrado esperado, y te recordamos cada toma, cambio o inyección.</li>
+        <li><b>Relaciones sexuales</b>: si indicas que no, ocultamos la probabilidad de embarazo y los avisos no te hablan de pruebas de embarazo.</li>
+        <li><b>Edad</b>: ajusta los consejos para la adolescencia, la búsqueda de embarazo después de los 35 y la perimenopausia.</li>
+        <li><b>Estatura y peso</b>: calculamos tu IMC, que influye en la ovulación. En el embarazo te mostramos cuánto peso conviene ganar cada semana.</li>
+        <li><b>Regularidad, situación y condiciones</b> (SOP, endometriosis, tiroides…): si tus ciclos varían, te mostramos un rango de fechas en lugar de un solo día, y consejos para tu caso.</li>
+      </ul>
+      <p class="muted small">Estos datos solo se guardan en tu dispositivo y se incluyen en el resumen para tu médico.</p>`,
   },
   {
     id: 'privacy', ic: 'lock', title: 'Privacidad y copias de seguridad',

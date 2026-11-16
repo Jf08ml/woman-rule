@@ -10,6 +10,20 @@ export const defaults = () => ({
     cycleLength: 28,
     periodLength: 5,
     lutealLength: 14,
+    // Perfil de salud (opcional): adapta predicciones, avisos y consejos. Ver health.js
+    contraception: null, // null = no indicado | id de CONTRACEPTION
+    packType: null, // '21-7' | '28' | '24-4' | 'continuous'
+    methodDate: null, // inicio del blíster actual / última inyección / colocación del implante o DIU
+    injectionInterval: 90, // 30 | 90 días
+    sexActive: null, // true | false | null (prefiere no decir)
+    birthYear: null,
+    height: null, // cm
+    weight: null, // kg de referencia (antes del embarazo si está embarazada)
+    regularity: null, // 'regular' | 'irregular' | 'unknown'
+    situation: 'none', // none | postpill | postpartum | breastfeeding | perimenopause
+    conditions: [], // ids de CONDITIONS
+    smoker: false,
+    conceiveSince: null, // fecha en la que empezó a buscar embarazo
   },
   periodDays: [], // claves 'YYYY-MM-DD' ordenadas
   logs: {}, // clave -> { flow, symptoms[], moods[], discharge, sex, pill, temp, weight, water, sleep, ovTest, pregTest, notes }
@@ -28,7 +42,7 @@ export const defaults = () => ({
     bbt: { on: false, time: '07:00' },
     pregnancyWeekly: { on: true },
   },
-  settings: { theme: 'auto', pinHash: null, discreet: false, guideSeen: false },
+  settings: { theme: 'auto', pinHash: null, discreet: false, guideSeen: false, healthAsked: false },
 });
 
 function merge(base, saved) {

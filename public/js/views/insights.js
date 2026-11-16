@@ -4,6 +4,9 @@ import { todayKey, addDays, diffDays, fmt } from '../dates.js';
 import { SYMPTOMS, MOODS } from '../catalog.js';
 import { esc, toast } from '../ui.js';
 import { icon } from '../icons.js';
+import {
+  age, bmi, methodOf, methodMode, profileAlerts, irregularityExpected, CONDITIONS, SITUATIONS, option,
+} from '../health.js';
 
 function lineChart(points, unit, decimals) {
   if (points.length < 2) return '<p class="muted small">Registra al menos 2 valores para ver la gráfica.</p>';
@@ -43,6 +46,17 @@ function topCounts(logs, field, catalog, since) {
 
 function buildSummary(s, stats, pred) {
   const lines = ['Resumen de mi ciclo (Lunara)', ''];
+  const p = s.profile;
+  const a = age(p);
+  const b = bmi(s);
+  const m = methodOf(p);
+  if (a !== null) lines.push(`Edad: ${a} años`);
+  if (m) lines.push(`Método anticonceptivo: ${m.label}${p.methodDate ? ` (desde ${fmt(p.methodDate, { day: 'numeric', month: 'short', year: 'numeric' })})` : ''}`);
+  if (b) lines.push(`IMC: ${b.value} (${b.cat.toLowerCase()})`);
+  if (p.conditions?.length) lines.push(`Condiciones: ${p.conditions.map((id) => option(CONDITIONS, id)?.label || id).join(', ')}`);
+  if (p.situation && p.situation !== 'none') lines.push(`Situación: ${option(SITUATIONS, p.situation)?.label}`);
+  if (p.smoker) lines.push('Fumadora');
+  if (lines.length > 2) lines.push('');
   lines.push(`Ciclo promedio: ${stats.avgCycle} días`);
   lines.push(`Periodo promedio: ${stats.avgPeriod} días`);
   if (stats.variation !== null) lines.push(`Variación entre ciclos: ${stats.variation} días`);
@@ -75,13 +89,19 @@ export function render() {
   const weights = Object.entries(s.logs).filter(([d, l]) => l.weight && d >= addDays(t, -180)).map(([d, l]) => ({ d, v: l.weight })).sort((a, b) => (a.d < b.d ? -1 : 1));
 
   const alerts = [];
-  if (stats.cycles.length >= 2) {
+  const soften = irregularityExpected(s.profile);
+  const natural = methodMode(s.profile) === 'natural';
+  if (stats.cycles.length >= 2 && natural && !soften) {
     if (stats.avgCycle < 21) alerts.push('Tus ciclos son más cortos de 21 días de media.');
     if (stats.avgCycle > 35) alerts.push('Tus ciclos duran más de 35 días de media.');
     if (stats.variation > 9) alerts.push(`Tus ciclos varían ${stats.variation} días entre sí.`);
   }
   if (stats.avgPeriod > 7) alerts.push('Tu periodo suele durar más de 7 días.');
   if (pred?.late >= 10) alerts.push(`Tu periodo lleva ${pred.late} días de retraso.`);
+  alerts.push(...profileAlerts(s, stats, pred));
+  const b = bmi(s);
+  const conds = (s.profile.conditions || []).map((id) => option(CONDITIONS, id)).filter(Boolean);
+  const conceiveMonths = s.profile.goal === 'conceive' && s.profile.conceiveSince ? Math.floor(diffDays(s.profile.conceiveSince, t) / 30.4) : null;
 
   const regularity = stats.regular === null ? '—' : stats.regular ? 'Regular' : 'Irregular';
 
@@ -93,11 +113,17 @@ export function render() {
       <div class="stat"><small>Periodo promedio</small><strong>${stats.avgPeriod}<span> días</span></strong></div>
       <div class="stat"><small>Regularidad</small><strong class="${stats.regular === false ? 'warn' : ''}">${regularity}</strong>${stats.variation !== null ? `<span class="muted small">±${stats.variation} días</span>` : ''}</div>
       <div class="stat"><small>Ciclos registrados</small><strong>${stats.cycles.length}</strong></div>
+      ${b ? `<div class="stat"><small>IMC</small><strong class="${b.tone === 'warn' ? 'warn' : ''}">${b.value}</strong><span class="muted small">${b.cat}</span></div>` : ''}
+      ${conceiveMonths !== null ? `<div class="stat"><small>Buscando embarazo</small><strong>${conceiveMonths < 1 ? '<1' : conceiveMonths}<span> ${conceiveMonths === 1 ? 'mes' : 'meses'}</span></strong></div>` : ''}
     </div>
+    ${soften && stats.regular === false ? '<p class="muted center small">Por tu edad o tu momento de vida es normal que tus ciclos varíen más.</p>' : ''}
+    ${!natural ? '<p class="muted center small">Con un método hormonal, tus sangrados no son una regla natural: las estadísticas del ciclo son orientativas.</p>' : ''}
     ${stats.cycles.length < 2 ? '<p class="muted center small">Registra al menos 2 periodos para obtener estadísticas personalizadas. Mientras tanto usamos los valores de tu perfil.</p>' : ''}
 
     ${alerts.length ? `<section class="card warn-card"><h2 class="h-ic warn-ic">${icon('triangle-alert')} Para comentar con tu médico</h2><ul class="tips">${alerts.map((a) => `<li>${a}</li>`).join('')}</ul>
       <p class="muted small">Esto no es un diagnóstico. Un profesional de salud puede ayudarte a valorarlo.</p></section>` : ''}
+
+    ${conds.length ? `<section class="card"><h2 class="h-ic">${icon('stethoscope')} Consejos para ti</h2><ul class="tips">${conds.map((c) => `<li><b>${c.label}:</b> ${c.tip}</li>`).join('')}</ul></section>` : ''}
 
     <section class="card">
       <h2>Historial de ciclos</h2>

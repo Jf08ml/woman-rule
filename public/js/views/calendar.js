@@ -1,9 +1,10 @@
 import { getState, getLog, setPeriodDay, setPeriodDays } from '../store.js';
 import { computeStats, predict, buildDayMap } from '../cycle.js';
-import { todayKey, toKey, addDays, diffDays, fmtLong, monthName, WEEKDAYS, plural } from '../dates.js';
+import { todayKey, toKey, addDays, diffDays, fmt, fmtLong, monthName, WEEKDAYS, plural } from '../dates.js';
 import { FLOW, SYMPTOMS, MOODS, SEX, madeLove, label } from '../catalog.js';
 import { esc, toast } from '../ui.js';
 import { icon } from '../icons.js';
+import { contraceptionPlan, fertilityTracked } from '../health.js';
 
 let cursor = null; // { y, m }
 let selected = null;
@@ -42,8 +43,11 @@ export function render(params = []) {
   if (!cursor) { const n = new Date(); cursor = { y: n.getFullYear(), m: n.getMonth() }; }
   if (!selected) selected = t;
   const stats = computeStats(s);
-  const pred = s.profile.goal === 'pregnant' ? null : predict(s, t, stats);
-  const map = s.profile.goal === 'pregnant' ? new Map(s.periodDays.map((d) => [d, 'period'])) : buildDayMap(s, stats, pred, t);
+  const pregnant = s.profile.goal === 'pregnant';
+  const pred = pregnant ? null : predict(s, t, stats);
+  const plan = pregnant ? null : contraceptionPlan(s, t);
+  const fertility = !pregnant && fertilityTracked(s.profile);
+  const map = pregnant ? new Map(s.periodDays.map((d) => [d, 'period'])) : buildDayMap(s, stats, pred, t, plan);
 
   const first = new Date(cursor.y, cursor.m, 1, 12);
   const offset = (first.getDay() + 6) % 7; // lunes primero
@@ -69,7 +73,9 @@ export function render(params = []) {
   if (pred && !edit) {
     summary = `<p class="cal-summary">${pred.inPeriod ? `Periodo: día ${pred.periodDay}`
       : pred.late ? `Retraso de ${plural(pred.late, 'día', 'días')}`
-        : `Próximo periodo en ${plural(pred.daysUntil, 'día', 'días')}`}</p>`;
+        : pred.phase === 'due' && pred.range ? `Tu periodo puede llegar cualquier día hasta el ${fmt(pred.range.end)}`
+          : pred.mode !== 'natural' ? `Sangrado aproximado en ${plural(Math.max(0, pred.daysUntil), 'día', 'días')}`
+            : `Próximo periodo en ${pred.range ? '≈ ' : ''}${plural(pred.daysUntil, 'día', 'días')}`}</p>`;
   }
 
   return {
@@ -88,9 +94,8 @@ export function render(params = []) {
       <div class="legend">
         <span><i class="lg lg-period"></i>Periodo</span>
         <span><i class="lg lg-predicted"></i>Previsto</span>
-        <span><i class="lg lg-fertile"></i>Fértil</span>
-        <span><i class="lg lg-ovulation"></i>Ovulación</span>
-        <span class="lg-love">${icon('heart', 'fill')}Hicimos el amor</span>
+        ${fertility ? '<span><i class="lg lg-fertile"></i>Fértil</span><span><i class="lg lg-ovulation"></i>Ovulación</span>' : ''}
+        ${s.profile.sexActive === false ? '' : `<span class="lg-love">${icon('heart', 'fill')}Hicimos el amor</span>`}
       </div>
     </section>
     <div class="center-actions">

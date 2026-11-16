@@ -59,6 +59,8 @@ const ICONS = [
   // ciclo y salud
   'droplet', 'droplets', 'dot', 'flower-2', 'sparkles', 'egg', 'baby', 'hourglass', 'thermometer', 'weight', 'bed', 'glass-water',
   'pill', 'moon', 'moon-star', 'heart', 'heart-pulse', 'test-tube-diagonal', 'sprout', 'target',
+  // perfil de salud
+  'syringe', 'stethoscope', 'milk', 'shield-check', 'scale', 'user-round',
   // síntomas y ánimo
   'brain', 'activity', 'wind', 'scan-face', 'bone', 'person-standing', 'battery-low', 'battery-full', 'waves', 'cookie', 'orbit',
   'flame', 'thumbs-up', 'smile', 'leaf', 'badge-check', 'heart-crack', 'shuffle', 'angry', 'cloud-lightning', 'frown', 'meh',

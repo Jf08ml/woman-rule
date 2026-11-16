@@ -10,8 +10,9 @@ PWA instalable (Android, iOS 16.4+, escritorio) con funcionalidades equivalentes
 | **Calendario** | Periodos registrados, previstos (3 ciclos), ventana fértil y ovulación; edición de fechas con autocompletado de la duración del periodo |
 | **Registro diario** | Periodo + intensidad, 18 síntomas, 12 estados de ánimo, flujo vaginal, actividad sexual, píldora, pruebas de ovulación y embarazo, temperatura basal, peso, sueño, agua, notas |
 | **Análisis** | Ciclo y periodo promedio, regularidad, historial de ciclos, síntomas y ánimo frecuentes, gráficas de temperatura basal y peso, alertas para comentar con el médico, resumen para compartir |
+| **Perfil de salud** | Método anticonceptivo (calendario de blíster/parche/anillo, inyección, implante y DIU; sin ventana fértil con métodos hormonales), actividad sexual, edad, estatura y peso (IMC), regularidad, situación (lactancia, posparto, perimenopausia, tras dejar la píldora), condiciones (SOP, endometriosis, tiroides…). Ajusta predicciones (rangos en ciclos irregulares), avisos y consejos |
 | **Objetivos** | Seguir el ciclo · Buscar embarazo · **Modo embarazo** (semana, trimestre, tamaño del bebé, fecha probable de parto) |
-| **Notificaciones** | Periodo próximo (N días antes), inicio del periodo, retraso, ventana fértil, ovulación, píldora diaria, registrar síntomas, temperatura basal, agua (4 horas), embarazo semana a semana, **modo discreto**, botones de prueba |
+| **Notificaciones** | Periodo próximo (N días antes), inicio del periodo, retraso, ventana fértil, ovulación, anticonceptivo (tomas del blíster, descanso, cambio de parche/anillo, inyección, revisión del dispositivo), registrar síntomas, temperatura basal, agua (4 horas), embarazo semana a semana, **modo discreto**, botones de prueba |
 | **Privacidad** | Datos solo en el dispositivo (localStorage), bloqueo con PIN, exportar/importar copia JSON, borrar todo |
 | **PWA** | Instalable, funciona sin conexión, atajos, tema claro/oscuro |
 
@@ -72,7 +73,8 @@ vercel.json             Salida estática, cron cada minuto y cabeceras
 server/server.js        Servidor Express local (mismo núcleo, planificador cada 30 s)
 public/index.html       Shell de la app
 public/sw.js            Service worker: offline, push, clic en notificación, respaldo local
-public/js/cycle.js      Motor de predicción (media ponderada de los últimos 6 ciclos, fase lútea configurable)
+public/js/cycle.js      Motor de predicción (media ponderada de los últimos 6 ciclos, fase lútea configurable, rangos si es irregular)
+public/js/health.js     Perfil de salud: método anticonceptivo y su calendario, IMC, alertas y consejos personalizados
 public/js/reminders.js  Construcción de la agenda de notificaciones
 public/js/push.js       Suscripción, sincronización y pruebas de notificaciones
 public/js/views/*       Pantallas: hoy, calendario, registro, análisis, perfil, onboarding, PIN

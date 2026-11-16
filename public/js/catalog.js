@@ -89,7 +89,7 @@ export const PHASES = {
   fertile: {
     name: 'Ventana fértil',
     desc: 'Días con mayor probabilidad de embarazo. El flujo puede volverse transparente y elástico.',
-    tips: ['Si buscas embarazo, estos son tus días clave.', 'Si no, usa un método anticonceptivo fiable.', 'Las pruebas de ovulación detectan el pico de LH.'],
+    tips: ['Si buscas embarazo, estos son tus días clave.', 'Si no, usa un método anticonceptivo fiable: el preservativo o métodos naturales tienen más margen de fallo estos días.', 'Las pruebas de ovulación detectan el pico de LH.'],
   },
   ovulation: {
     name: 'Día de ovulación',
@@ -105,6 +105,31 @@ export const PHASES = {
     name: 'Periodo retrasado',
     desc: 'Tu periodo no ha llegado en la fecha estimada. El estrés, viajes o cambios de rutina pueden retrasarlo.',
     tips: ['Si hubo relaciones sin protección, considera una prueba de embarazo.', 'Si el retraso es frecuente, coméntalo con tu médico.'],
+  },
+  due: {
+    name: 'Periodo en cualquier momento',
+    desc: 'Estás dentro de tu rango habitual de llegada. Ten a mano lo que necesites.',
+    tips: ['Cuando llegue, regístralo para afinar tus próximas predicciones.', 'El estrés, los viajes o dormir poco pueden mover unos días la fecha.'],
+  },
+  waiting: {
+    name: 'Esperando tu periodo',
+    desc: 'En tu situación el periodo puede tardar en volver o llegar sin un patrón fijo. Regístralo cuando aparezca.',
+    tips: ['Puedes ovular antes de tu primera regla: si no buscas embarazo, usa un método fiable.', 'Si tienes dudas o sangrados muy abundantes, consulta con tu médico.'],
+  },
+  hormonal: {
+    name: 'Anticonceptivo hormonal',
+    desc: 'Tu método impide o reduce la ovulación, así que no calculamos ventana fértil. El sangrado puede ser más ligero, irregular o desaparecer, y es normal.',
+    tips: ['Registra cuándo sangras para ver tu patrón con este método.', 'Si sangras mucho, varios días seguidos o con dolor, coméntalo con tu médico.', 'Los vómitos, la diarrea y algunos medicamentos pueden restar eficacia a las píldoras.'],
+  },
+  packActive: {
+    name: 'Semanas activas',
+    desc: 'Tu método evita la ovulación: no hay ventana fértil. Mantén el horario para estar protegida.',
+    tips: ['Toma la píldora, o cambia el parche o el anillo, el día y a la hora que tocan.', 'Si olvidas una toma o te retrasas, revisa el prospecto: quizá necesites preservativo unos días.', 'Los vómitos o la diarrea fuertes pueden restar eficacia a la píldora.'],
+  },
+  packBreak: {
+    name: 'Semana de descanso',
+    desc: 'El sangrado de estos días es por la pausa hormonal, no una regla natural. Si usaste bien tu método, sigues protegida.',
+    tips: ['Empieza el siguiente blíster, parche o anillo el día que toca, aunque sigas sangrando.', 'Si no sangras en la pausa y olvidaste tomas, considera una prueba de embarazo.'],
   },
 };
 

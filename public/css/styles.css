@@ -149,7 +149,7 @@ a { color: var(--primary); text-decoration: none; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
 .tag { padding: 5px 10px; border-radius: 999px; background: var(--surface-2); font-size: .85rem; }
 .pill { padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
-.phase-menstrual { background: var(--primary-soft); color: var(--primary); }
+.phase-menstrual, .phase-due { background: var(--primary-soft); color: var(--primary); }
 .phase-fertile, .phase-ovulation { background: var(--fertile); color: var(--fertile-ink); }
 .tips { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
 .tips li { margin-bottom: 4px; }
@@ -314,6 +314,13 @@ textarea { resize: vertical; }
 
 .option small { display: block; color: var(--muted); }
 .option.on { border-color: var(--primary); background: var(--primary-soft); }
+.options.compact { gap: 8px; }
+.options.compact .option { padding: 10px 12px; gap: 12px; border-radius: 14px; }
+.options.compact .option .ib { width: 36px; height: 36px; }
+.options.compact .option .ib .i { width: 18px; height: 18px; }
+.field-label { margin: 6px 0 2px; font-size: .9rem; font-weight: 600; }
+.card .status { margin: 8px 0; }
+.card .chips + .check-row { margin-top: 12px; }
 .date-big { font-size: 1.2rem !important; text-align: center; }
 .check-row { display: flex; align-items: center; gap: 10px; }
 .check-row input { width: 20px; height: 20px; accent-color: var(--primary); }

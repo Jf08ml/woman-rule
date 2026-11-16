@@ -1,11 +1,15 @@
 import { getState, update, replaceState, resetAll } from '../store.js';
-import { todayKey, isValidKey } from '../dates.js';
+import { todayKey, isValidKey, fmt, addDays } from '../dates.js';
 import { REMINDER_INFO } from '../reminders.js';
 import {
   enableNotifications, disableNotifications, syncReminders, testLocal, testServer,
   permission, pushStatus, isIOS, isStandalone, notificationsSupported,
 } from '../push.js';
-import { esc, toast, modal, confirmDialog, sha256 } from '../ui.js';
+import { esc, toast, modal, confirmDialog, sha256, chips } from '../ui.js';
+import {
+  CONTRACEPTION, PACK_TYPES, REGULARITY, SITUATIONS, CONDITIONS, methodOf, methodMode,
+  fertilityTracked, methodHasReminder, takesPill, contraceptionPlan, bmi,
+} from '../health.js';
 import { icon, badge } from '../icons.js';
 
 let scrolledTo = null;
@@ -45,9 +49,81 @@ function reminderRow(s, info) {
   </li>`;
 }
 
-function relevantReminders(goal) {
-  if (goal === 'pregnant') return REMINDER_INFO.filter((i) => ['pregnancyWeekly', 'logDaily', 'water'].includes(i.key));
-  return REMINDER_INFO.filter((i) => i.key !== 'pregnancyWeekly');
+function relevantReminders(s) {
+  const p = s.profile;
+  if (p.goal === 'pregnant') return REMINDER_INFO.filter((i) => ['pregnancyWeekly', 'logDaily', 'water'].includes(i.key));
+  const hide = new Set(['pregnancyWeekly']);
+  if (!fertilityTracked(p)) { hide.add('fertile'); hide.add('ovulation'); }
+  if (methodMode(p) !== 'natural') hide.add('periodLate');
+  if (p.contraception && !methodHasReminder(p.contraception) && !takesPill(p, s.reminders)) hide.add('pill');
+  return REMINDER_INFO.filter((i) => !hide.has(i.key));
+}
+
+const dateLong = (k) => fmt(k, { day: 'numeric', month: 'long', year: 'numeric' });
+
+function methodDetails(s) {
+  const p = s.profile;
+  const m = methodOf(p);
+  if (!m) return '';
+  const t = todayKey();
+  const plan = contraceptionPlan(s, t);
+  const date = (lbl, min) => `<label class="field">${lbl}<input type="date" data-h="methodDate" max="${t}" min="${min}" value="${p.methodDate || ''}"></label>`;
+  if (m.id === 'pill') {
+    const type = p.packType || '21-7';
+    return `<label class="field">Tipo de blíster<select data-h="packType">${PACK_TYPES.map((o) => `<option value="${o.id}" ${type === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}</select></label>
+      ${type === 'continuous' ? '' : date('Primera píldora del blíster actual (o de cualquier blíster anterior)', addDays(t, -400))}
+      ${plan?.day && !plan.continuous ? `<p class="muted small">Hoy es el día ${plan.day} de tu blíster${plan.inBreak ? ' (descanso)' : ''}.</p>` : ''}`;
+  }
+  if (m.id === 'patch' || m.id === 'ring') {
+    return `<label class="field">Uso<select data-h="packType"><option value="21-7" ${p.packType !== 'continuous' ? 'selected' : ''}>3 semanas + 1 de descanso</option><option value="continuous" ${p.packType === 'continuous' ? 'selected' : ''}>Continuo, sin descanso</option></select></label>
+      ${date(`Día en que pusiste el primer ${m.id === 'patch' ? 'parche' : 'anillo'} del ciclo`, addDays(t, -400))}`;
+  }
+  if (m.id === 'injection') {
+    return `<div class="grid2"><label class="field">Frecuencia<select data-h="injectionInterval"><option value="30" ${Number(p.injectionInterval) === 30 ? 'selected' : ''}>Mensual</option><option value="90" ${Number(p.injectionInterval) !== 30 ? 'selected' : ''}>Cada 3 meses</option></select></label>
+      ${date('Última inyección', addDays(t, -200))}</div>
+      ${plan?.next ? `<p class="muted small">Próxima inyección: <b>${dateLong(plan.next)}</b>.</p>` : ''}`;
+  }
+  if (m.years) {
+    return `${date('Fecha de colocación', addDays(t, -365 * 12))}
+      ${plan?.expiry ? `<p class="muted small">Duración habitual: ${m.years} años · revisión o cambio hacia el <b>${dateLong(plan.expiry)}</b>. Confírmalo según tu modelo.</p>` : ''}`;
+  }
+  return '';
+}
+
+function healthCard(s) {
+  const p = s.profile;
+  const pregnant = p.goal === 'pregnant';
+  const b = bmi(s);
+  const year = Number(todayKey().slice(0, 4));
+  const sexVal = p.sexActive === true ? 'yes' : p.sexActive === false ? 'no' : 'skip';
+  return `
+    <section class="card" id="health">
+      <h2 class="h-ic">${icon('stethoscope')} Mi salud</h2>
+      <p class="muted small">Opcional. Ajusta tus predicciones, avisos y consejos, y solo se guarda en este dispositivo.</p>
+      ${pregnant ? '' : `
+        <label class="field">Método anticonceptivo
+          <select data-h="contraception"><option value="" ${p.contraception ? '' : 'selected'}>Sin indicar</option>
+            ${CONTRACEPTION.map((o) => `<option value="${o.id}" ${p.contraception === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}</select></label>
+        ${methodDetails(s)}
+        ${methodMode(p) !== 'natural' ? '<p class="status">Con tu método no calculamos ventana fértil ni ovulación.</p>' : ''}`}
+      ${p.goal === 'track' ? `
+        <p class="field-label">¿Tienes relaciones sexuales?</p>
+        <div class="seg-ctl">${[['yes', 'Sí'], ['no', 'No'], ['skip', 'Prefiero no decir']].map(([v, l]) => `<button type="button" data-sex="${v}" class="${sexVal === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}
+      <div class="grid2">
+        <label class="field">Año de nacimiento<input type="number" inputmode="numeric" min="1940" max="${year - 8}" data-h="birthYear" value="${p.birthYear ?? ''}" placeholder="—"></label>
+        <label class="field">Estatura<input type="number" inputmode="numeric" min="120" max="220" data-h="height" value="${p.height ?? ''}" placeholder="—"><small>cm</small></label>
+        <label class="field">${pregnant ? 'Peso antes del embarazo' : 'Peso de referencia'}<input type="number" inputmode="decimal" step="0.1" min="30" max="250" data-h="weight" value="${p.weight ?? ''}" placeholder="—"><small>kg${pregnant ? '' : ' · el registro diario lo actualiza'}</small></label>
+      </div>
+      ${b ? `<p class="status ${b.tone === 'ok' ? 'ok' : b.tone === 'warn' ? 'warn' : ''}">IMC ${b.value} · ${b.cat}</p>` : ''}
+      ${pregnant ? '' : `
+        <div class="grid2">
+          <label class="field">Mis ciclos son<select data-h="regularity"><option value="">Sin indicar</option>${REGULARITY.map((o) => `<option value="${o.id}" ${p.regularity === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}</select></label>
+          <label class="field">Situación<select data-h="situation">${SITUATIONS.map((o) => `<option value="${o.id}" ${p.situation === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}</select></label>
+        </div>`}
+      <p class="field-label">Condiciones de salud</p>
+      ${chips(CONDITIONS, p.conditions, 'conditions')}
+      ${methodOf(p)?.combined ? `<label class="check-row"><input type="checkbox" data-h="smoker" ${p.smoker ? 'checked' : ''}> Fumo</label>` : ''}
+    </section>`;
 }
 
 export function render(params = []) {
@@ -87,6 +163,8 @@ export function render(params = []) {
       <p class="muted small">Cuando registras periodos, Lunara usa tus datos reales para ajustar las predicciones.</p>
     </section>
 
+    ${healthCard(s)}
+
     <section class="card" id="notifications">
       <div class="card-head"><h2 class="h-ic">${icon('bell')} Notificaciones</h2>
         <label class="switch"><input type="checkbox" data-act="notif" ${r.enabled ? 'checked' : ''}><span></span></label>
@@ -94,7 +172,7 @@ export function render(params = []) {
       ${notifStatus(s)}
       ${r.enabled ? `
         <label class="field inline">Hora de los avisos del ciclo<input type="time" data-act="time" value="${r.time}"></label>
-        <ul class="rems">${relevantReminders(p.goal).map((i) => reminderRow(s, i)).join('')}</ul>
+        <ul class="rems">${relevantReminders(s).map((i) => reminderRow(s, i)).join('')}</ul>
         <div class="rem-main discreet">
           <div><b class="h-ic">${icon('eye-off')} Modo discreto</b><small>Las notificaciones no muestran detalles (“Tienes un recordatorio nuevo”).</small></div>
           <label class="switch"><input type="checkbox" data-act="discreet" ${s.settings.discreet ? 'checked' : ''}><span></span></label>
@@ -136,11 +214,62 @@ export function render(params = []) {
     <p class="disclaimer">Lunara · v1.0 — Las predicciones son estimaciones basadas en tus datos y no sustituyen el consejo médico ni un método anticonceptivo.</p>
     `,
     bind(root) {
-      if (params[0] === 'notifications' && scrolledTo !== 'notifications') {
-        scrolledTo = 'notifications';
-        setTimeout(() => root.querySelector('#notifications')?.scrollIntoView({ behavior: 'smooth' }), 50);
+      if (['notifications', 'health'].includes(params[0]) && scrolledTo !== params[0]) {
+        scrolledTo = params[0];
+        setTimeout(() => root.querySelector(`#${params[0]}`)?.scrollIntoView({ behavior: 'smooth' }), 50);
       }
-      root.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => update((st) => { st.profile.goal = b.dataset.goal; })));
+      root.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => update((st) => {
+        const g = b.dataset.goal;
+        if (g === 'conceive' && st.profile.goal !== 'conceive') {
+          st.profile.conceiveSince = todayKey();
+          st.profile.sexActive = true;
+          if (methodMode(st.profile) !== 'natural') toast('Si dejaste tu anticonceptivo, actualízalo en “Mi salud”', 4000);
+        }
+        if (g !== 'conceive') st.profile.conceiveSince = null;
+        st.profile.goal = g;
+      })));
+
+      // Mi salud
+      const t0 = todayKey();
+      const year = Number(t0.slice(0, 4));
+      const ranges = { birthYear: [1940, year - 8], height: [120, 220], weight: [30, 250] };
+      root.querySelectorAll('[data-h]').forEach((el) => el.addEventListener('change', () => {
+        const k = el.dataset.h;
+        if (k === 'smoker') { update((st) => { st.profile.smoker = el.checked; }); return; }
+        if (ranges[k]) {
+          const [min, max] = ranges[k];
+          const v = el.value === '' ? null : Number(el.value);
+          if (v !== null && (!Number.isFinite(v) || v < min || v > max)) { toast(`Introduce un valor entre ${min} y ${max}`); el.value = p[k] ?? ''; return; }
+          update((st) => { st.profile[k] = v === null ? null : k === 'weight' ? Math.round(v * 10) / 10 : Math.round(v); });
+          return;
+        }
+        if (k === 'methodDate') {
+          if (el.value && (!isValidKey(el.value) || el.value > t0)) { toast('La fecha no puede ser futura'); el.value = p.methodDate || ''; return; }
+          update((st) => { st.profile.methodDate = el.value || null; });
+          return;
+        }
+        update((st) => {
+          const pr = st.profile;
+          if (k === 'contraception') {
+            pr.contraception = el.value || null;
+            pr.methodDate = null;
+            pr.packType = pr.contraception === 'pill' ? '21-7' : pr.packType === 'continuous' ? 'continuous' : '21-7';
+            st.reminders.pill.on = methodHasReminder(pr.contraception);
+            st.settings.healthAsked = true;
+            if (st.reminders.pill.on && !st.reminders.enabled) toast('Activa las notificaciones para recibir los avisos de tu método', 4000);
+          } else if (k === 'injectionInterval') pr.injectionInterval = Number(el.value);
+          else pr[k] = el.value || null;
+          if (k === 'situation' && !pr.situation) pr.situation = 'none';
+        });
+      }));
+      root.querySelectorAll('[data-sex]').forEach((b) => b.addEventListener('click', () => update((st) => {
+        st.profile.sexActive = { yes: true, no: false }[b.dataset.sex] ?? null;
+      })));
+      root.querySelectorAll('.chips[data-name=conditions] .chip').forEach((b) => b.addEventListener('click', () => update((st) => {
+        const set = new Set(st.profile.conditions || []);
+        if (set.has(b.dataset.id)) set.delete(b.dataset.id); else set.add(b.dataset.id);
+        st.profile.conditions = [...set];
+      })));
       root.querySelectorAll('[data-theme]').forEach((b) => b.addEventListener('click', () => update((st) => { st.settings.theme = b.dataset.theme; })));
       root.querySelector('[data-preg=lmp]')?.addEventListener('change', (e) => {
         if (isValidKey(e.target.value)) update((st) => { st.pregnancy.lmp = e.target.value; });

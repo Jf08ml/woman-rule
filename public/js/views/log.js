@@ -3,6 +3,7 @@ import { todayKey, addDays, fmtLong, isValidKey } from '../dates.js';
 import { FLOW, SYMPTOMS, MOODS, DISCHARGE, SEX, madeLove, soloTime, OV_TEST, PREG_TEST } from '../catalog.js';
 import { esc, chips, toast } from '../ui.js';
 import { icon } from '../icons.js';
+import { takesPill, contraceptionPlan } from '../health.js';
 
 export function render(params = []) {
   const s = getState();
@@ -13,7 +14,10 @@ export function render(params = []) {
   const isPeriod = s.periodDays.includes(d);
   const prev = addDays(d, -1);
   const next = addDays(d, 1);
-  const showPill = s.reminders.pill.on || log.pill;
+  const showPill = takesPill(s.profile, s.reminders) || log.pill || (!s.profile.contraception && s.profile.goal === 'track');
+  const plan = contraceptionPlan(s, d);
+  const pillBreak = plan?.kind === 'pack' && plan.method.id === 'pill' && plan.inBreak && plan.pause;
+  const intimate = s.profile.sexActive !== false || madeLove(log);
 
   return {
     html: `
@@ -34,11 +38,11 @@ export function render(params = []) {
     <section class="card"><h2>Estado de ánimo</h2>${chips(MOODS, log.moods, 'moods')}</section>
     <section class="card"><h2>Flujo vaginal</h2>${chips(DISCHARGE, log.discharge, 'discharge', false)}</section>
     <section class="card">
-      <div class="card-head"><h2 class="h-ic love-ic">${icon('heart', 'fill')} Hicimos el amor</h2>
+      ${intimate ? `<div class="card-head"><h2 class="h-ic love-ic">${icon('heart', 'fill')} Hicimos el amor</h2>
         <label class="switch"><input type="checkbox" data-act="love" ${madeLove(log) ? 'checked' : ''}><span></span></label>
       </div>
-      ${madeLove(log) ? `<p class="muted small">¿Con protección? (opcional)</p>${chips(SEX, log.sex, 'sex', false)}` : '<p class="muted small">Se marcará con un corazón en tu calendario.</p>'}
-      <div class="card-head sub"><span class="h-ic">${icon('sparkles')} Momento a solas</span>
+      ${madeLove(log) ? `<p class="muted small">¿Con protección? (opcional)</p>${chips(SEX, log.sex, 'sex', false)}` : '<p class="muted small">Se marcará con un corazón en tu calendario.</p>'}` : `<h2 class="h-ic">${icon('sparkles')} Intimidad</h2>`}
+      <div class="card-head ${intimate ? 'sub' : ''}"><span class="h-ic">${icon('sparkles')} Momento a solas</span>
         <label class="switch"><input type="checkbox" data-act="solo" ${soloTime(log) ? 'checked' : ''}><span></span></label>
       </div>
     </section>
@@ -48,7 +52,7 @@ export function render(params = []) {
       <div class="card-head"><h2 class="h-ic">${icon('pill')} Píldora anticonceptiva</h2>
         <label class="switch"><input type="checkbox" data-act="pill" ${log.pill ? 'checked' : ''}><span></span></label>
       </div>
-      <p class="muted small">Marca si tomaste tu píldora este día.</p>
+      <p class="muted small">${pillBreak ? 'Este día es de tu semana de descanso: no toca píldora.' : plan?.kind === 'pack' && plan.method.id === 'pill' && plan.day && !plan.continuous ? `Día ${plan.day} de tu blíster. Marca si tomaste tu píldora.` : 'Marca si tomaste tu píldora este día.'}</p>
     </section>` : ''}
 
     <section class="card">
@@ -87,7 +91,7 @@ export function render(params = []) {
         if (!e.target.checked) setLog(d, { flow: null });
         toast(e.target.checked ? 'Día de periodo registrado' : 'Día de periodo eliminado');
       });
-      root.querySelector('[data-act=love]').addEventListener('change', (e) => {
+      root.querySelector('[data-act=love]')?.addEventListener('change', (e) => {
         const on = e.target.checked;
         const patch = { sex: on ? 'yes' : null };
         if (getLog(d).sex === 'solo') patch.solo = true; // migra registros antiguos
