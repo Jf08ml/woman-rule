@@ -322,6 +322,12 @@ textarea { resize: vertical; }
 .card .status { margin: 8px 0; }
 .card .chips + .check-row { margin-top: 12px; }
 .date-big { font-size: 1.2rem !important; text-align: center; }
+.past-list { display: flex; flex-direction: column; gap: 8px; }
+.past-row { display: flex; align-items: center; gap: 8px; }
+.past-row input { flex: 1; min-width: 0; }
+.past-summary { margin: 0; }
+.past-summary p { margin: 0; }
+.past-summary p + p { margin-top: 6px; }
 .check-row { display: flex; align-items: center; gap: 10px; }
 .check-row input { width: 20px; height: 20px; accent-color: var(--primary); }
 .stepper { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 20px; }

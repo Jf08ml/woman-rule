@@ -1,5 +1,6 @@
 import { update } from '../store.js';
-import { todayKey, addDays, isValidKey, diffDays } from '../dates.js';
+import { todayKey, addDays, isValidKey, diffDays, fmt } from '../dates.js';
+import { computeStats } from '../cycle.js';
 import { enableNotifications } from '../push.js';
 import { esc, toast, chips } from '../ui.js';
 import { icon } from '../icons.js';
@@ -7,13 +8,45 @@ import { CONTRACEPTION, PACK_TYPES, REGULARITY, SITUATIONS, CONDITIONS, option, 
 
 let step = 0;
 const draft = {
-  name: '', goal: 'track', lastStart: '', unknown: false, periodLength: 5, cycleLength: 28,
+  name: '', goal: 'track', lastStart: '', unknown: false, pastStarts: [''], periodLength: 5, cycleLength: 28,
   regularity: null, contraception: null, packType: '21-7', methodDate: '', injectionInterval: 90,
   birthYear: '', sexActive: null, situation: 'none', height: '', weight: '', conditions: [], smoker: false,
 };
 const rerender = () => window.dispatchEvent(new Event('rerender'));
 const num = (v, min, max) => { const n = Number(v); return v !== '' && v !== null && Number.isFinite(n) && n >= min && n <= max ? n : null; };
 const thisYear = Number(todayKey().slice(0, 4));
+
+const MAX_PAST = 5;
+const MIN_GAP = 18;
+
+/** Inicios de periodo conocidos (anteriores + el último), ordenados y sin repetir. */
+function knownStarts() {
+  if (draft.unknown || !isValidKey(draft.lastStart)) return [];
+  return [...new Set([...draft.pastStarts.filter((v) => isValidKey(v) && v < draft.lastStart), draft.lastStart])].sort();
+}
+
+/** Días de periodo a partir de los inicios: cada uno dura periodLength sin solaparse con el siguiente ni pasar de hoy. */
+function periodDaysFrom(starts, t = todayKey()) {
+  const days = [];
+  starts.forEach((start, i) => {
+    const next = starts[i + 1];
+    for (let k = 0; k < draft.periodLength; k++) {
+      const d = addDays(start, k);
+      if (d > t || (next && d >= addDays(next, -1))) break;
+      days.push(d);
+    }
+  });
+  return days;
+}
+
+/** Estadísticas con el mismo motor que usará la app tras el registro. */
+function historyStats() {
+  const starts = knownStarts();
+  if (starts.length < 2) return null;
+  const stats = computeStats({ periodDays: periodDaysFrom(starts), profile: { cycleLength: draft.cycleLength, periodLength: draft.periodLength } });
+  const valid = stats.cycles.filter((c) => c.length >= MIN_GAP && c.length <= 60);
+  return valid.length ? { ...stats, valid } : null;
+}
 
 // Métodos que necesitan una fecha o tipo para calcular su calendario
 const needsDetails = (id) => ['pill', 'patch', 'ring', 'injection', 'implant', 'iud-hormonal', 'iud-copper'].includes(id);
@@ -26,7 +59,8 @@ function finish(withNotifications) {
     p.name = draft.name.trim();
     p.goal = goal;
     p.periodLength = draft.periodLength;
-    p.cycleLength = draft.cycleLength;
+    const hist = historyStats();
+    p.cycleLength = hist ? hist.avgCycle : draft.cycleLength;
     p.regularity = goal === 'pregnant' ? null : draft.regularity;
     p.contraception = goal === 'track' ? draft.contraception : goal === 'conceive' ? 'none' : null;
     p.packType = draft.packType;
@@ -43,7 +77,7 @@ function finish(withNotifications) {
     if (goal === 'pregnant' && isValidKey(draft.lastStart)) s.pregnancy.lmp = draft.lastStart;
     if (!draft.unknown && isValidKey(draft.lastStart) && goal !== 'pregnant') {
       const days = new Set(s.periodDays);
-      for (let i = 0; i < draft.periodLength; i++) { const d = addDays(draft.lastStart, i); if (d <= t) days.add(d); }
+      periodDaysFrom(knownStarts(), t).forEach((d) => days.add(d));
       s.periodDays = [...days].sort();
     }
     s.reminders.pill.on = methodHasReminder(p.contraception);
@@ -69,6 +103,31 @@ const optionList = (key, list, compact = false) => `
 
 const seg = (key, list) => `
   <div class="seg-ctl">${list.map(([v, l]) => `<button type="button" data-pick="${key}" data-v="${v}" class="${String(draft[key]) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+
+function historyStep() {
+  const hist = historyStats();
+  const minDate = addDays(draft.lastStart, -400);
+  const maxDate = addDays(draft.lastStart, -MIN_GAP);
+  const rows = draft.pastStarts.map((v, i) => `
+    <div class="past-row">
+      <input type="date" class="date-big" data-past="${i}" min="${minDate}" max="${maxDate}" value="${v}" aria-label="Inicio de un periodo anterior">
+      ${draft.pastStarts.length > 1 || v ? `<button type="button" class="icon-btn" data-rm="${i}" aria-label="Quitar fecha">${icon('minus')}</button>` : ''}
+    </div>`).join('');
+  const long = hist && hist.cycles.some((c) => c.length > 60);
+  return `
+    <div class="hero-ic">${icon('calendar-days')}</div>
+    <h1>¿Recuerdas tus periodos anteriores?</h1>
+    <p class="muted">Tu último periodo empezó el <b>${fmt(draft.lastStart, { day: 'numeric', month: 'long' })}</b>. Si sabes cuándo empezaron los anteriores (puedes mirarlo en otra app o en tu agenda), añade hasta ${MAX_PAST}. Con ellos calculamos tu ciclo real desde el primer día.</p>
+    <div class="past-list">${rows}</div>
+    ${draft.pastStarts.length < MAX_PAST ? `<button type="button" class="btn ghost block" data-act="add-past">${icon('plus')} Añadir otra fecha</button>` : ''}
+    ${hist ? `
+      <div class="card past-summary">
+        <p>Tus ciclos: <b>${hist.valid.map((c) => c.length).join(' · ')}</b> días</p>
+        <p>Tu ciclo medio: <b>${hist.avgCycle} días</b>${hist.valid.length < 3 ? '<br><small class="muted">Con 3 o más fechas la predicción es más precisa.</small>' : ''}</p>
+        ${long ? '<p class="small muted">Hay un intervalo de más de 60 días: no lo usamos en la media. ¿Falta algún periodo entre medias?</p>' : ''}
+      </div>` : ''}
+    <p class="muted small">Es opcional: si no lo recuerdas, Lunara aprenderá tu ciclo con tus próximos registros.</p>`;
+}
 
 function detailsStep() {
   const t = todayKey();
@@ -125,6 +184,7 @@ export function render() {
       <p class="muted">${pregnant ? 'La usamos para calcular tus semanas de embarazo y la fecha probable de parto.' : 'Elige el primer día de sangrado.'}</p>
       <input type="date" class="date-big" data-f="lastStart" max="${t}" min="${addDays(t, pregnant ? -300 : -120)}" value="${draft.lastStart}">
       ${pregnant ? '' : `<label class="check-row"><input type="checkbox" data-f="unknown" ${draft.unknown ? 'checked' : ''}> No lo recuerdo</label>`}`,
+    history: historyStep,
     period: () => `
       <h1>¿Cuántos días suele durar tu periodo?</h1>
       <p class="muted">Normalmente entre 3 y 7 días.</p>
@@ -172,14 +232,18 @@ export function render() {
   };
 
   const order = ['welcome', 'goal', 'last'];
-  if (!pregnant) order.push('period', 'cycle', 'regularity');
+  if (!pregnant && !draft.unknown && isValidKey(draft.lastStart)) order.push('history');
+  if (!pregnant) order.push('period');
+  // Si las fechas ya dan al menos un ciclo real, no preguntamos la duración del ciclo
+  if (!pregnant && !historyStats()) order.push('cycle');
+  if (!pregnant) order.push('regularity');
   if (track) order.push('method');
   if (track && needsDetails(draft.contraception)) order.push('details');
   order.push('about', 'health', 'notif');
   const idx = Math.min(step, order.length - 1);
   const current = order[idx];
   const last = idx === order.length - 1;
-  const optional = ['about', 'health'].includes(current);
+  const optional = ['history', 'about', 'health'].includes(current);
 
   return {
     html: `
@@ -196,10 +260,24 @@ export function render() {
       </div>
     </div>`,
     bind(root) {
-      const read = () => root.querySelectorAll('[data-f]').forEach((el) => {
-        draft[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
-      });
+      const read = () => {
+        root.querySelectorAll('[data-f]').forEach((el) => { draft[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; });
+        root.querySelectorAll('[data-past]').forEach((el) => { draft.pastStarts[Number(el.dataset.past)] = el.value; });
+      };
       root.querySelectorAll('[data-f]').forEach((el) => el.addEventListener('change', read));
+      root.querySelectorAll('[data-past]').forEach((el) => el.addEventListener('change', () => {
+        draft.pastStarts[Number(el.dataset.past)] = el.value;
+        rerender();
+      }));
+      root.querySelectorAll('[data-rm]').forEach((b) => b.addEventListener('click', () => {
+        draft.pastStarts.splice(Number(b.dataset.rm), 1);
+        if (!draft.pastStarts.length) draft.pastStarts.push('');
+        rerender();
+      }));
+      root.querySelector('[data-act=add-past]')?.addEventListener('click', () => {
+        if (draft.pastStarts.length < MAX_PAST) draft.pastStarts.push('');
+        rerender();
+      });
       root.querySelector('[data-f=name]')?.addEventListener('input', (e) => { draft.name = e.target.value; });
       root.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => {
         read();
@@ -227,7 +305,10 @@ export function render() {
         rerender();
       }));
       root.querySelector('[data-act=back]')?.addEventListener('click', () => { read(); step = idx - 1; rerender(); });
-      root.querySelector('[data-act=omit]')?.addEventListener('click', () => { step = idx + 1; rerender(); });
+      root.querySelector('[data-act=omit]')?.addEventListener('click', () => {
+        if (current === 'history') draft.pastStarts = [''];
+        step = idx + 1; rerender();
+      });
       root.querySelector('[data-act=next]')?.addEventListener('click', () => {
         read();
         if (current === 'last') {
@@ -235,6 +316,22 @@ export function render() {
           if (!draft.unknown && !isValidKey(v)) { toast('Elige una fecha o marca “No lo recuerdo”'); return; }
           if (isValidKey(v) && v > t) { toast('La fecha no puede ser futura'); return; }
           if (pregnant && (!isValidKey(v) || diffDays(v, t) > 300)) { toast('Elige una fecha válida'); return; }
+        }
+        if (current === 'history') {
+          const filled = draft.pastStarts.filter((v) => v);
+          if (filled.some((v) => !isValidKey(v))) { toast('Revisa las fechas'); return; }
+          if (filled.some((v) => v >= draft.lastStart)) { toast('Las fechas deben ser anteriores a tu último periodo'); return; }
+          const starts = knownStarts();
+          for (let i = 1; i < starts.length; i++) {
+            if (diffDays(starts[i - 1], starts[i]) < MIN_GAP) {
+              toast(`Entre el inicio de dos periodos debe haber al menos ${MIN_GAP} días: revisa el ${fmt(starts[i - 1])} y el ${fmt(starts[i])}`, 5000);
+              return;
+            }
+          }
+          draft.pastStarts = filled.length ? [...new Set(filled)].sort().reverse() : [''];
+          // Con 2 o más ciclos sugerimos la regularidad según sus fechas
+          const hist = historyStats();
+          if (hist && hist.valid.length >= 2 && !draft.regularity) draft.regularity = hist.regular ? 'regular' : 'irregular';
         }
         if (current === 'regularity' && !draft.regularity) draft.regularity = 'unknown';
         if (current === 'method' && !draft.contraception) { toast('Elige una opción (puede ser “Ninguno”)'); return; }
